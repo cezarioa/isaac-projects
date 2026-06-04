@@ -1,0 +1,873 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary cameraSettings = {
+            dictionary Front = {
+                double3 position = (5, 0, 0)
+                double radius = 5
+            }
+            dictionary Perspective = {
+                double3 position = (3.5406704277362957, -3.8564519762367793, 1.6376740785036272)
+                double3 target = (1.5733503613046282, 5.800937034105719, -0.35901211347929873)
+            }
+            dictionary Right = {
+                double3 position = (0, -5, 0)
+                double radius = 5
+            }
+            dictionary Top = {
+                double3 position = (0, 0, 5)
+                double radius = 5
+            }
+            string boundCamera = "/OmniverseKit_Persp"
+        }
+        dictionary omni_layer = {
+            string authoring_layer = "./ridgeback_stable.usda"
+            dictionary locked = {
+            }
+            dictionary muteness = {
+            }
+        }
+        dictionary renderSettings = {
+        }
+    }
+    defaultPrim = "World"
+    endTimeCode = 1000000
+    metersPerUnit = 1
+    startTimeCode = 0
+    subLayers = [
+        @./warehouse.usda@
+    ]
+    timeCodesPerSecond = 60
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def "ridgeback_ur5" (
+        prepend payload = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Robots/Clearpath/RidgebackUr/ridgeback_ur5.usd@
+    )
+    {
+        string isaac:namespace (
+            displayName = "Namespace"
+            doc = "Namespace of the prim in Isaac Sim"
+        )
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (2.208534890779692, 0, 0.06501078734770627)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "world"
+        {
+            vector3f physics:angularVelocity = (0, 0, 0)
+            vector3f physics:velocity = (0, 0, 0)
+            quatd xformOp:orient = (1, 0, 0, 0)
+            double3 xformOp:translate = (6.519870154875207e-8, 0, -1.2911877123045201e-9)
+
+            over "dummy_base_prismatic_x_joint" (
+                prepend apiSchemas = ["PhysxLimitAPI:linear"]
+            )
+            {
+                float drive:linear:physics:damping = 1000
+                float drive:linear:physics:stiffness = 0
+                float drive:linear:physics:targetVelocity = 0
+                custom string isaac:nameOverride (
+                    displayName = "Name Override"
+                    doc = "Name override for prim lookup in base name search"
+                )
+                float physxLimit:linear:damping = 1000
+                float state:linear:physics:position = -0.0036942228
+                float state:linear:physics:velocity = 0.0011509635
+            }
+
+            over "FixedJoint"
+            {
+                custom string isaac:nameOverride (
+                    displayName = "Name Override"
+                    doc = "Name override for prim lookup in base name search"
+                )
+            }
+        }
+
+        over "dummy_base_x"
+        {
+            vector3f physics:angularVelocity = (0, 0, 0)
+            vector3f physics:velocity = (0.0011509635, 0, 0)
+            quatd xformOp:orient = (1, 0, 0, 0)
+            double3 xformOp:translate = (-0.003694230684477162, 0, -1.2911877123045201e-9)
+
+            over "dummy_base_prismatic_y_joint"
+            {
+                float drive:linear:physics:damping = 1000
+                float drive:linear:physics:stiffness = 0
+                custom string isaac:nameOverride (
+                    displayName = "Name Override"
+                    doc = "Name override for prim lookup in base name search"
+                )
+                uniform token physics:axis = "Y"
+                quatf physics:localRot0 = (1, 0, 0, 0)
+                quatf physics:localRot1 = (1, 0, 0, 0)
+                float state:linear:physics:position = -0.00021218845
+                float state:linear:physics:velocity = 0.0001792763
+            }
+        }
+
+        over "dummy_base_y"
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (0, 0, 0)
+            vector3f physics:velocity = (0.0011509635, 0.00017927626, 0)
+            quatd xformOp:orient = (1, 0, 0, -0)
+            double3 xformOp:translate = (-0.003694230684477162, -0.00021218838810455054, -1.2911877123045201e-9)
+
+            over "dummy_base_revolute_z_joint"
+            {
+                float drive:angular:physics:damping = 0
+                float drive:angular:physics:stiffness = 0
+                custom string isaac:nameOverride (
+                    displayName = "Name Override"
+                    doc = "Name override for prim lookup in base name search"
+                )
+                uniform token physics:axis = "Z"
+                quatf physics:localRot0 = (1, 0, 0, 0)
+                quatf physics:localRot1 = (1, 0, 0, 0)
+                float state:angular:physics:position = -0.67186856
+                float state:angular:physics:velocity = -0.12699391
+            }
+        }
+
+        over "base_link"
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (-1.992935e-8, -4.2102953e-11, 0)
+            vector3f physics:velocity = (0, 0, 2.8902692e-14)
+            quatd xformOp:orient = (0.9999828115568374, -1.0194227911556968e-9, -2.403616914703027e-8, -0.005863155369079853)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 1.3609973481543136e-8)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            over "ur_arm_shoulder_pan_joint"
+            {
+                float state:angular:physics:position = -0.003543941
+                float state:angular:physics:velocity = -0.8541928
+            }
+
+            def Xform "sensors"
+            {
+                quatd xformOp:orient = (1, 0, 0, 0)
+                double3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def Camera "front_camera"
+                {
+                    float2 clippingRange = (0.01, 10000000)
+                    float focalLength = 18.147562
+                    float focusDistance = 400
+                    quatd xformOp:orient = (0.4999999999999998, 0.5000000000000002, -0.5000000000000001, -0.5)
+                    double3 xformOp:scale = (1, 1, 1)
+                    double3 xformOp:translate = (0.7250718628685475, -0.015316821157054834, 0.662785473738824)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                }
+            }
+        }
+
+        over "ur_arm_shoulder_link" (
+            active = true
+        )
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (9.481964e-8, -2.9336673e-9, -0.9811867)
+            vector3f physics:velocity = (0.0011509635, 0.00017927661, 7.5106754e-19)
+            token visibility = "invisible"
+            quatd xformOp:orient = (0.005894009638051281, 1.927692285041767e-13, 9.122401484625818e-10, 0.9999826301743379)
+            double3 xformOp:translate = (-0.003694230684477162, -0.0002121875440934673, 0.3691589819394031)
+
+            over "ur_arm_shoulder_lift_joint"
+            {
+                float state:angular:physics:position = -74.373856
+                float state:angular:physics:velocity = -4.0011916
+            }
+        }
+
+        over "ur_arm_upper_arm_link" (
+            active = true
+        )
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (-0.04816555, -4.0009007, -0.98118615)
+            vector3f physics:velocity = (-0.010826819, -0.0006527355, 0.003980589)
+            token visibility = "invisible"
+            quatd xformOp:orient = (0.43070041795664354, -0.424059828519882, 0.5658384831950517, 0.5608005195639393)
+            double3 xformOp:translate = (-0.003694230684477162, -0.00021219253540039062, 0.3691589521370807)
+
+            over "ur_arm_elbow_joint"
+            {
+                float state:angular:physics:position = 75.3423
+                float state:angular:physics:velocity = -5.4559712
+            }
+        }
+
+        over "ur_arm_forearm_link" (
+            active = true
+        )
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (-0.11384342, -9.456477, -0.9811851)
+            vector3f physics:velocity = (-0.026762059, -0.0047956784, 0.04033019)
+            token visibility = "invisible"
+            quatd xformOp:orient = (-0.001808160907669309, 0.0101432352497032, 0.7070340514262319, 0.7071044445176468)
+            double3 xformOp:translate = (0.11077577435092323, -0.001561674289405346, 0.7784507857762256)
+
+            over "ur_arm_wrist_1_joint"
+            {
+                float state:angular:physics:position = 0.0020299605
+                float state:angular:physics:velocity = -0.23009077
+            }
+        }
+
+        over "ur_arm_wrist_1_link" (
+            active = true
+        )
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (-0.11661318, -9.68655, -0.98118484)
+            vector3f physics:velocity = (-0.024757901, -0.0081783775, 0.07269921)
+            token visibility = "invisible"
+            quatd xformOp:orient = (-0.0018206132670378374, 0.01015567512670158, 0.707033886558506, 0.7071043988606114)
+            double3 xformOp:translate = (0.5042291339548051, 0.10295761376619339, 0.7718211399517932)
+
+            over "ur_arm_wrist_2_joint"
+            {
+                float state:angular:physics:position = 89.999886
+                float state:angular:physics:velocity = -0.010830879
+            }
+        }
+
+        over "ur_arm_wrist_2_link" (
+            active = true
+        )
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (-0.11645988, -9.686551, -0.97035515)
+            vector3f physics:velocity = (-0.008757415, -0.008348115, 0.072473265)
+            token visibility = "invisible"
+            quatd xformOp:orient = (-0.006023399639098526, 0.7112360179872298, 0.7029022744602198, -0.005952976827303506)
+            double3 xformOp:translate = (0.5026262458475053, 0.102976493537426, 0.6771846996746936)
+
+            over "ur_arm_wrist_3_joint"
+            {
+                float state:angular:physics:position = -2.3325125e-8
+                float state:angular:physics:velocity = -0.0000028063773
+            }
+        }
+
+        over "ur_arm_wrist_3_link" (
+            active = true
+        )
+        {
+            string isaac:nameOverride (
+                displayName = "Name Override"
+                doc = "Name override for prim lookup in base name search"
+            )
+            vector3f physics:angularVelocity = (-0.11646268, -9.686553, -0.97035486)
+            vector3f physics:velocity = (-0.008611019, -0.009485406, 0.08380861)
+            token visibility = "invisible"
+            quatd xformOp:orient = (0.4986606756730601, 0.50717902629765, 0.5012363239519682, 0.49281752543124174)
+            double3 xformOp:translate = (0.5849087890298783, 0.10200664401054382, 0.6757907854519764)
+        }
+    }
+
+    def "g1" (
+        prepend payload = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Robots/Unitree/G1_23dof/g1.usd@
+    )
+    {
+        string isaac:namespace (
+            displayName = "Namespace"
+            doc = "Namespace of the prim in Isaac Sim"
+        )
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (3.224377100975361, 2.944430338606907, 0.7612650512149753)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "pelvis"
+        {
+            over "left_hip_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+
+            over "right_hip_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+
+            over "torso_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_hip_pitch_link"
+        {
+            over "left_hip_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_hip_roll_link"
+        {
+            over "left_hip_yaw_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_hip_yaw_link"
+        {
+            over "left_knee_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_knee_link"
+        {
+            over "left_ankle_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_ankle_pitch_link"
+        {
+            over "left_ankle_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_ankle_roll_link"
+        {
+        }
+
+        over "pelvis_contour_link"
+        {
+        }
+
+        over "right_hip_pitch_link"
+        {
+            over "right_hip_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_hip_roll_link"
+        {
+            over "right_hip_yaw_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_hip_yaw_link"
+        {
+            over "right_knee_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_knee_link"
+        {
+            over "right_ankle_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_ankle_pitch_link"
+        {
+            over "right_ankle_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_ankle_roll_link"
+        {
+        }
+
+        over "torso_link"
+        {
+            over "left_shoulder_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+
+            over "right_shoulder_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "head_link"
+        {
+        }
+
+        over "imu_link"
+        {
+        }
+
+        over "left_shoulder_pitch_link"
+        {
+            over "left_shoulder_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_shoulder_roll_link"
+        {
+            over "left_shoulder_yaw_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_shoulder_yaw_link"
+        {
+            over "left_elbow_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_elbow_pitch_link"
+        {
+            over "left_elbow_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_elbow_roll_link"
+        {
+        }
+
+        over "left_palm_link"
+        {
+            over "left_five_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+
+            over "left_three_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+
+            over "left_zero_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_five_link"
+        {
+            over "left_six_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_six_link"
+        {
+        }
+
+        over "left_three_link"
+        {
+            over "left_four_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_four_link"
+        {
+        }
+
+        over "left_zero_link"
+        {
+            over "left_one_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_one_link"
+        {
+            over "left_two_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "left_two_link"
+        {
+        }
+
+        over "logo_link"
+        {
+        }
+
+        over "right_shoulder_pitch_link"
+        {
+            over "right_shoulder_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_shoulder_roll_link"
+        {
+            over "right_shoulder_yaw_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_shoulder_yaw_link"
+        {
+            over "right_elbow_pitch_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_elbow_pitch_link"
+        {
+            over "right_elbow_roll_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_elbow_roll_link"
+        {
+        }
+
+        over "right_palm_link"
+        {
+            over "right_five_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+
+            over "right_three_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+
+            over "right_zero_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_five_link"
+        {
+            over "right_six_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_six_link"
+        {
+        }
+
+        over "right_three_link"
+        {
+            over "right_four_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_four_link"
+        {
+        }
+
+        over "right_zero_link"
+        {
+            over "right_one_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_one_link"
+        {
+            over "right_two_joint"
+            {
+                float state:angular:physics:position = 0
+                float state:angular:physics:velocity = 0
+            }
+        }
+
+        over "right_two_link"
+        {
+        }
+    }
+
+    def Camera "Camera"
+    {
+        float2 clippingRange = (0.01, 10000000)
+        float focalLength = 18.147562
+        float focusDistance = 400
+        float horizontalAperture = 11.1
+        custom uniform vector3d omni:kit:centerOfInterest = (0, 0, -400)
+        token projection = "perspective"
+        quatd xformOp:orient = (0.8097243944431781, 0.5491282543273862, 0.11612307468136648, 0.17123082920295524)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (6.7509502470718585, -8.084516143874309, 3.842061163053598)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Camera "Camera_02"
+    {
+        float2 clippingRange = (0.01, 10000000)
+        float focalLength = 18.147562
+        float focusDistance = 400
+        quatd xformOp:orient = (0.5000000000000001, 0.5, 0.49999999999999994, 0.5)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def "ridgeback_ur5_01" (
+        prepend payload = @https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Robots/Clearpath/RidgebackUr/ridgeback_ur5.usd@
+    )
+    {
+        string isaac:namespace (
+            displayName = "Namespace"
+            doc = "Namespace of the prim in Isaac Sim"
+        )
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (3.2695645406040663, 1.3196931912021057, 0.06688811658828642)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "world"
+        {
+            over "dummy_base_prismatic_x_joint"
+            {
+                float state:linear:physics:position = -0.0044084215
+                float state:linear:physics:velocity = 0.0021169658
+            }
+        }
+
+        over "dummy_base_x"
+        {
+            over "dummy_base_prismatic_y_joint"
+            {
+                float state:linear:physics:position = -0.00020073523
+                float state:linear:physics:velocity = 0.00019993554
+            }
+        }
+
+        over "dummy_base_y"
+        {
+            over "dummy_base_revolute_z_joint"
+            {
+                float state:angular:physics:position = 0.003920415
+                float state:angular:physics:velocity = 0.0071505927
+            }
+        }
+
+        over "base_link"
+        {
+            over "ur_arm_shoulder_pan_joint"
+            {
+                float state:angular:physics:position = -0.00064227876
+                float state:angular:physics:velocity = -0.94558966
+            }
+        }
+
+        over "ur_arm_shoulder_link"
+        {
+            over "ur_arm_shoulder_lift_joint"
+            {
+                float state:angular:physics:position = -74.42096
+                float state:angular:physics:velocity = -4.413627
+            }
+        }
+
+        over "ur_arm_upper_arm_link"
+        {
+            over "ur_arm_elbow_joint"
+            {
+                float state:angular:physics:position = 75.325584
+                float state:angular:physics:velocity = -5.6765985
+            }
+        }
+
+        over "ur_arm_forearm_link"
+        {
+            over "ur_arm_wrist_1_joint"
+            {
+                float state:angular:physics:position = 0.0023828656
+                float state:angular:physics:velocity = -0.23567669
+            }
+        }
+
+        over "ur_arm_wrist_1_link"
+        {
+            over "ur_arm_wrist_2_joint"
+            {
+                float state:angular:physics:position = 89.99982
+                float state:angular:physics:velocity = -0.007369917
+            }
+        }
+
+        over "ur_arm_wrist_2_link"
+        {
+            over "ur_arm_wrist_3_joint"
+            {
+                float state:angular:physics:position = -1.5443279e-8
+                float state:angular:physics:velocity = -0.0000022849083
+            }
+        }
+
+        over "ur_arm_wrist_3_link" (
+            active = true
+        )
+        {
+        }
+    }
+}
+
+def "Render" (
+    hide_in_stage_window = true
+    no_delete = true
+)
+{
+    def "OmniverseKit"
+    {
+        def "HydraTextures" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_0" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </OmniverseKit_Persp>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:dlss:frameGeneration = 0
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "performance"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                uint omni:rtx:viewTile:limit = 4294967295
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+        }
+    }
+
+    def RenderSettings "OmniverseGlobalRenderSettings" (
+        prepend apiSchemas = ["OmniRtxSettingsGlobalRtAdvancedAPI_1", "OmniRtxSettingsGlobalPtAdvancedAPI_1"]
+        no_delete = true
+    )
+    {
+        rel products = </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0>
+    }
+
+    def "Vars"
+    {
+        def RenderVar "LdrColor" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            uniform string sourceName = "LdrColor"
+        }
+    }
+}
+

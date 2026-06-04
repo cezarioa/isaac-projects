@@ -1,0 +1,1423 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary cameraSettings = {
+            dictionary Front = {
+                double3 position = (5, 0, 0)
+                double radius = 5
+            }
+            dictionary Perspective = {
+                double3 position = (-14.428964326015835, 4.178275276178574, 2.5869648620444705)
+                double3 target = (-4.591640296579104, -4.079407803826534, 0.6407567308149111)
+            }
+            dictionary Right = {
+                double3 position = (0, -5, 0)
+                double radius = 5
+            }
+            dictionary Top = {
+                double3 position = (0, 0, 5)
+                double radius = 5
+            }
+            string boundCamera = "/OmniverseKit_Persp"
+        }
+        dictionary omni_layer = {
+            dictionary locked = {
+            }
+            dictionary muteness = {
+            }
+        }
+        dictionary physicsSettings = {
+            int "/persistent/simulation/minFrameRate" = 50
+            bool "/physics/updateParticlesToUsd" = 0
+            bool "/physics/updateToUsd" = 0
+            bool "/physics/updateVelocitiesToUsd" = 0
+        }
+        dictionary renderSettings = {
+            int "rtx:post:dlss:execMode" = 1
+            bool "rtx:raytracing:cached:enabled" = 1
+        }
+    }
+    endTimeCode = 1000000
+    metersPerUnit = 1
+    startTimeCode = 0
+    subLayers = [
+        @./hospital.usda@
+    ]
+    timeCodesPerSecond = 50
+    upAxis = "Z"
+)
+
+def "Render" (
+    hide_in_stage_window = true
+    no_delete = true
+)
+{
+    def "OmniverseKit"
+    {
+        def "HydraTextures" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_0" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </OmniverseKit_Persp>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "balanced"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:clampSpp = 64
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:maxSamplesPerLaunch = 1000000
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                int omni:rtx:pt:samplesPerIteration = 64
+                int omni:rtx:pt:samplesPerPixel = 64
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                float omni:rtx:rt:ambientLight:intensity = 1
+                bool omni:rtx:rt:ambientocclusion:enabled = 0
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:rt:indirectdiffuse:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:rt:reflections:enabled = 0
+                bool omni:rtx:rt:refractions:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                uint omni:rtx:viewTile:limit = 1000000
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+
+            def RenderProduct "Replicator" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </World/PerspectiveCamera>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                string[] omni:rtx:material:db:flattener:ior_constant = ["ior_constant", "glass_ior"]
+                string[] omni:rtx:material:db:flattener:reflection_roughness_constant = ["reflection_roughness_constant", "frosting_roughness"]
+                string[] omni:rtx:material:db:flattener:transmittance_color = ["transmittance_color", "glass_color"]
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:aa:op = "dlss"
+                token omni:rtx:post:dlss:execMode = "balanced"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:clampSpp = 64
+                bool omni:rtx:pt:denoising:enabled = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:limits:maxBounces = 4
+                int omni:rtx:pt:limits:maxGlossyBounces = 6
+                int omni:rtx:pt:maxSamplesPerLaunch = 1000000
+                int omni:rtx:pt:maxVolumeBounces = 4
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                int omni:rtx:pt:samplesPerIteration = 64
+                int omni:rtx:pt:samplesPerPixel = 64
+                bool omni:rtx:raytracing:picking:occluded:enabled = 0
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                float omni:rtx:rt:ambientLight:intensity = 1
+                bool omni:rtx:rt:ambientocclusion:enabled = 0
+                bool omni:rtx:rt:demoire = 0
+                uint omni:rtx:rt:directLighting:samples = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                int omni:rtx:rt:iesTextureRes = 1024
+                bool omni:rtx:rt:indexdirect:enabled = 1
+                token omni:rtx:rt:indexdirect:NanoVDBCompression = "None"
+                bool omni:rtx:rt:indexdirect:NanoVDBCompressionDither = 1
+                bool omni:rtx:rt:indexdirect:showDetailledMemoryInfo = 0
+                int omni:rtx:rt:indexdirect:svo:brickBorder = 0
+                int3 omni:rtx:rt:indexdirect:svo:brickSize = (32, 32, 32)
+                token omni:rtx:rt:indexdirect:volumeType = "IndeXSVO"
+                bool omni:rtx:rt:indirectdiffuse:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:rt:reflections:enabled = 0
+                bool omni:rtx:rt:refractions:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                int omni:rtx:scene:hydra:subdivision:refinementLevel = 0
+                uint omni:rtx:viewTile:limit = 1000000
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (640, 480)
+            }
+
+            def RenderProduct "Replicator_01" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </World/envs/env_0/Robot/d435_link/front_cam>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                string[] omni:rtx:material:db:flattener:ior_constant = ["ior_constant", "glass_ior"]
+                string[] omni:rtx:material:db:flattener:reflection_roughness_constant = ["reflection_roughness_constant", "frosting_roughness"]
+                string[] omni:rtx:material:db:flattener:transmittance_color = ["transmittance_color", "glass_color"]
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:aa:op = "dlss"
+                token omni:rtx:post:dlss:execMode = "balanced"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:clampSpp = 64
+                bool omni:rtx:pt:denoising:enabled = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:limits:maxBounces = 4
+                int omni:rtx:pt:limits:maxGlossyBounces = 6
+                int omni:rtx:pt:maxSamplesPerLaunch = 1000000
+                int omni:rtx:pt:maxVolumeBounces = 4
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                int omni:rtx:pt:samplesPerIteration = 64
+                int omni:rtx:pt:samplesPerPixel = 64
+                bool omni:rtx:raytracing:picking:occluded:enabled = 0
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                float omni:rtx:rt:ambientLight:intensity = 1
+                bool omni:rtx:rt:ambientocclusion:enabled = 0
+                bool omni:rtx:rt:demoire = 0
+                uint omni:rtx:rt:directLighting:samples = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                int omni:rtx:rt:iesTextureRes = 1024
+                bool omni:rtx:rt:indexdirect:enabled = 1
+                token omni:rtx:rt:indexdirect:NanoVDBCompression = "None"
+                bool omni:rtx:rt:indexdirect:NanoVDBCompressionDither = 1
+                bool omni:rtx:rt:indexdirect:showDetailledMemoryInfo = 0
+                int omni:rtx:rt:indexdirect:svo:brickBorder = 0
+                int3 omni:rtx:rt:indexdirect:svo:brickSize = (32, 32, 32)
+                token omni:rtx:rt:indexdirect:volumeType = "IndeXSVO"
+                bool omni:rtx:rt:indirectdiffuse:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:rt:reflections:enabled = 0
+                bool omni:rtx:rt:refractions:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                int omni:rtx:scene:hydra:subdivision:refinementLevel = 0
+                uint omni:rtx:viewTile:limit = 1000000
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (640, 480)
+            }
+
+            def RenderProduct "Replicator_02" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </World/envs/env_0/Robot/left_hand_base_link/left_wrist_camera>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                string[] omni:rtx:material:db:flattener:ior_constant = ["ior_constant", "glass_ior"]
+                string[] omni:rtx:material:db:flattener:reflection_roughness_constant = ["reflection_roughness_constant", "frosting_roughness"]
+                string[] omni:rtx:material:db:flattener:transmittance_color = ["transmittance_color", "glass_color"]
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:aa:op = "dlss"
+                token omni:rtx:post:dlss:execMode = "balanced"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:clampSpp = 64
+                bool omni:rtx:pt:denoising:enabled = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:limits:maxBounces = 4
+                int omni:rtx:pt:limits:maxGlossyBounces = 6
+                int omni:rtx:pt:maxSamplesPerLaunch = 1000000
+                int omni:rtx:pt:maxVolumeBounces = 4
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                int omni:rtx:pt:samplesPerIteration = 64
+                int omni:rtx:pt:samplesPerPixel = 64
+                bool omni:rtx:raytracing:picking:occluded:enabled = 0
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                float omni:rtx:rt:ambientLight:intensity = 1
+                bool omni:rtx:rt:ambientocclusion:enabled = 0
+                bool omni:rtx:rt:demoire = 0
+                uint omni:rtx:rt:directLighting:samples = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                int omni:rtx:rt:iesTextureRes = 1024
+                bool omni:rtx:rt:indexdirect:enabled = 1
+                token omni:rtx:rt:indexdirect:NanoVDBCompression = "None"
+                bool omni:rtx:rt:indexdirect:NanoVDBCompressionDither = 1
+                bool omni:rtx:rt:indexdirect:showDetailledMemoryInfo = 0
+                int omni:rtx:rt:indexdirect:svo:brickBorder = 0
+                int3 omni:rtx:rt:indexdirect:svo:brickSize = (32, 32, 32)
+                token omni:rtx:rt:indexdirect:volumeType = "IndeXSVO"
+                bool omni:rtx:rt:indirectdiffuse:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:rt:reflections:enabled = 0
+                bool omni:rtx:rt:refractions:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                int omni:rtx:scene:hydra:subdivision:refinementLevel = 0
+                uint omni:rtx:viewTile:limit = 1000000
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (640, 480)
+            }
+
+            def RenderProduct "Replicator_03" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </World/envs/env_0/Robot/right_hand_base_link/right_wrist_camera>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                string[] omni:rtx:material:db:flattener:ior_constant = ["ior_constant", "glass_ior"]
+                string[] omni:rtx:material:db:flattener:reflection_roughness_constant = ["reflection_roughness_constant", "frosting_roughness"]
+                string[] omni:rtx:material:db:flattener:transmittance_color = ["transmittance_color", "glass_color"]
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:aa:op = "dlss"
+                token omni:rtx:post:dlss:execMode = "balanced"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:clampSpp = 64
+                bool omni:rtx:pt:denoising:enabled = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:limits:maxBounces = 4
+                int omni:rtx:pt:limits:maxGlossyBounces = 6
+                int omni:rtx:pt:maxSamplesPerLaunch = 1000000
+                int omni:rtx:pt:maxVolumeBounces = 4
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                int omni:rtx:pt:samplesPerIteration = 64
+                int omni:rtx:pt:samplesPerPixel = 64
+                bool omni:rtx:raytracing:picking:occluded:enabled = 0
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                float omni:rtx:rt:ambientLight:intensity = 1
+                bool omni:rtx:rt:ambientocclusion:enabled = 0
+                bool omni:rtx:rt:demoire = 0
+                uint omni:rtx:rt:directLighting:samples = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                int omni:rtx:rt:iesTextureRes = 1024
+                bool omni:rtx:rt:indexdirect:enabled = 1
+                token omni:rtx:rt:indexdirect:NanoVDBCompression = "None"
+                bool omni:rtx:rt:indexdirect:NanoVDBCompressionDither = 1
+                bool omni:rtx:rt:indexdirect:showDetailledMemoryInfo = 0
+                int omni:rtx:rt:indexdirect:svo:brickBorder = 0
+                int3 omni:rtx:rt:indexdirect:svo:brickSize = (32, 32, 32)
+                token omni:rtx:rt:indexdirect:volumeType = "IndeXSVO"
+                bool omni:rtx:rt:indirectdiffuse:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:rt:reflections:enabled = 0
+                bool omni:rtx:rt:refractions:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                int omni:rtx:scene:hydra:subdivision:refinementLevel = 0
+                uint omni:rtx:viewTile:limit = 1000000
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (640, 480)
+            }
+
+            def RenderProduct "Replicator_04" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </World/envs/env_0/Robot/d435_link/PerspectiveCamera_robot>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                string[] omni:rtx:material:db:flattener:ior_constant = ["ior_constant", "glass_ior"]
+                string[] omni:rtx:material:db:flattener:reflection_roughness_constant = ["reflection_roughness_constant", "frosting_roughness"]
+                string[] omni:rtx:material:db:flattener:transmittance_color = ["transmittance_color", "glass_color"]
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:aa:op = "dlss"
+                token omni:rtx:post:dlss:execMode = "balanced"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                int omni:rtx:pt:clampSpp = 64
+                bool omni:rtx:pt:denoising:enabled = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:limits:maxBounces = 4
+                int omni:rtx:pt:limits:maxGlossyBounces = 6
+                int omni:rtx:pt:maxSamplesPerLaunch = 1000000
+                int omni:rtx:pt:maxVolumeBounces = 4
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                int omni:rtx:pt:samplesPerIteration = 64
+                int omni:rtx:pt:samplesPerPixel = 64
+                bool omni:rtx:raytracing:picking:occluded:enabled = 0
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                float omni:rtx:rt:ambientLight:intensity = 1
+                bool omni:rtx:rt:ambientocclusion:enabled = 0
+                bool omni:rtx:rt:demoire = 0
+                uint omni:rtx:rt:directLighting:samples = 1
+                bool omni:rtx:rt:ecoMode:enabled
+                int omni:rtx:rt:iesTextureRes = 1024
+                bool omni:rtx:rt:indexdirect:enabled = 1
+                token omni:rtx:rt:indexdirect:NanoVDBCompression = "None"
+                bool omni:rtx:rt:indexdirect:NanoVDBCompressionDither = 1
+                bool omni:rtx:rt:indexdirect:showDetailledMemoryInfo = 0
+                int omni:rtx:rt:indexdirect:svo:brickBorder = 0
+                int3 omni:rtx:rt:indexdirect:svo:brickSize = (32, 32, 32)
+                token omni:rtx:rt:indexdirect:volumeType = "IndeXSVO"
+                bool omni:rtx:rt:indirectdiffuse:enabled = 0
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:rt:reflections:enabled = 0
+                bool omni:rtx:rt:refractions:enabled = 0
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                int omni:rtx:scene:hydra:subdivision:refinementLevel = 0
+                uint omni:rtx:viewTile:limit = 1000000
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (640, 480)
+            }
+        }
+    }
+
+    def RenderSettings "OmniverseGlobalRenderSettings" (
+        prepend apiSchemas = ["OmniRtxSettingsGlobalRtAdvancedAPI_1", "OmniRtxSettingsGlobalPtAdvancedAPI_1"]
+        no_delete = true
+    )
+    {
+        rel products = [
+            </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0>,
+            </Render/OmniverseKit/HydraTextures/Replicator>,
+            </Render/OmniverseKit/HydraTextures/Replicator_01>,
+            </Render/OmniverseKit/HydraTextures/Replicator_02>,
+            </Render/OmniverseKit/HydraTextures/Replicator_03>,
+            </Render/OmniverseKit/HydraTextures/Replicator_04>,
+        ]
+    }
+
+    def "Vars"
+    {
+        def RenderVar "LdrColor" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            uniform string sourceName = "LdrColor"
+        }
+    }
+}
+
+def Scope "Replicator"
+{
+    def OmniGraph "SDGPipeline"
+    {
+        token evaluationMode = "Automatic"
+        token evaluator:type = "execution"
+        token fabricCacheBacking = "StageWithoutHistory"
+        int2 fileFormatVersion = (1, 9)
+        custom int64 graph:variable:globalSeed (
+            customData = {
+                token scope = "private"
+            }
+            displayName = "globalSeed"
+        )
+        token pipelineStage = "pipelineStageSimulation"
+    }
+}
+
+def PhysicsScene "physicsScene" (
+    prepend apiSchemas = ["PhysxSceneAPI", "MaterialBindingAPI"]
+)
+{
+    rel material:binding:physics = </physicsScene/defaultMaterial> (
+        bindMaterialAs = "strongerThanDescendants"
+    )
+    vector3f physics:gravityDirection = (0, 0, -1)
+    float physics:gravityMagnitude = 9.81
+    float physxScene:bounceThreshold = 0.01
+    uniform token physxScene:broadphaseType = "GPU"
+    bool physxScene:enableCCD = 0
+    bool physxScene:enableEnhancedDeterminism = 0
+    bool physxScene:enableExternalForcesEveryIteration = 0
+    bool physxScene:enableGPUDynamics = 1
+    bool physxScene:enableSceneQuerySupport = 1
+    bool physxScene:enableStabilization = 0
+    float physxScene:frictionCorrelationDistance = 0.00625
+    float physxScene:frictionOffsetThreshold = 0.04
+    uint physxScene:gpuCollisionStackSize = 67108864
+    uint physxScene:gpuFoundLostAggregatePairsCapacity = 4194304
+    uint physxScene:gpuFoundLostPairsCapacity = 2097152
+    uint physxScene:gpuHeapCapacity = 67108864
+    uint physxScene:gpuMaxNumPartitions = 8
+    uint physxScene:gpuMaxParticleContacts = 1048576
+    uint physxScene:gpuMaxRigidContactCount = 8388608
+    uint physxScene:gpuMaxRigidPatchCount = 163840
+    uint physxScene:gpuMaxSoftBodyContacts = 1048576
+    uint64 physxScene:gpuTempBufferCapacity = 16777216
+    uint physxScene:gpuTotalAggregatePairsCapacity = 16384
+    uniform uint physxScene:maxPositionIterationCount = 255
+    uniform uint physxScene:maxVelocityIterationCount = 255
+    uniform uint physxScene:minPositionIterationCount = 1
+    uniform uint physxScene:minVelocityIterationCount = 0
+    custom bool physxScene:solveArticulationContactLast = 0
+    uniform token physxScene:solverType = "TGS"
+    uint physxScene:timeStepsPerSecond = 200
+
+    def Material "defaultMaterial" (
+        prepend apiSchemas = ["PhysicsMaterialAPI", "PhysxMaterialAPI"]
+    )
+    {
+        float physics:dynamicFriction = 1
+        float physics:restitution = 0
+        float physics:staticFriction = 1
+        float physxMaterial:compliantContactDamping = 0
+        float physxMaterial:compliantContactStiffness = 0
+        uniform token physxMaterial:frictionCombineMode = "max"
+        uniform token physxMaterial:restitutionCombineMode = "max"
+    }
+}
+
+def "World"
+{
+    def Scope "envs"
+    {
+        def Xform "env_0"
+        {
+            quatd xformOp:orient = (1, 0, 0, 0)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+            def Xform "Room" (
+                active = false
+                prepend references = @../../unitree_sim_isaaclab/assets/objects/small_warehouse/small_warehouse_digital_twin.usd@
+            )
+            {
+                quatd xformOp:orient = (1, 0, 0, 0)
+                double3 xformOp:scale = (100, 100, 100)
+                double3 xformOp:translate = (0, 0, 0)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+
+            def Xform "PackingTable_1" (
+                prepend references = @../../unitree_sim_isaaclab/assets/objects/PackingTable_2/PackingTable.usd@
+            )
+            {
+                quatd xformOp:orient = (0.7009099721908569, 0, 0, 0.7132499814033508)
+                double3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (-2.3564400672912598, -3.4557199478149414, -0.20000000298023224)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+            }
+
+            def Xform "PackingTable_2" (
+                prepend references = @../../unitree_sim_isaaclab/assets/objects/PackingTable/PackingTable.usd@
+            )
+            {
+                quatd xformOp:orient = (1, 0, 0, 0)
+                double3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (-3.972249984741211, -4.342400074005127, -0.20000000298023224)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                over "PackingTable_2"
+                {
+                    over "container_h20"
+                    {
+                        bool physics:kinematicEnabled = 1
+                    }
+                }
+            }
+
+            def Xform "Object" (
+                prepend apiSchemas = ["PhysicsMassAPI", "PhysicsRigidBodyAPI", "PhysxRigidBodyAPI"]
+            )
+            {
+                float physics:mass = 0.4
+                quatd xformOp:orient = (1, 0, 0, 0)
+                double3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (-2.5851399898529053, -2.789750099182129, 0.8399999737739563)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                def "geometry"
+                {
+                    def Cylinder "mesh" (
+                        prepend apiSchemas = ["PhysicsCollisionAPI", "PhysxCollisionAPI", "MaterialBindingAPI"]
+                    )
+                    {
+                        uniform token axis = "Z"
+                        double height = 0.35
+                        rel material:binding = </World/envs/env_0/Object/geometry/material> (
+                            bindMaterialAs = "strongerThanDescendants"
+                        )
+                        rel material:binding:physics = </World/envs/env_0/Object/geometry/material> (
+                            bindMaterialAs = "strongerThanDescendants"
+                        )
+                        double radius = 0.018
+                        quatd xformOp:orient = (1, 0, 0, 0)
+                        double3 xformOp:scale = (1, 1, 1)
+                        double3 xformOp:translate = (0, 0, 0)
+                        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                    }
+
+                    def Material "material" (
+                        prepend apiSchemas = ["PhysicsMaterialAPI", "PhysxMaterialAPI"]
+                    )
+                    {
+                        token outputs:displacement.connect = </World/envs/env_0/Object/geometry/material/Shader.outputs:displacement>
+                        token outputs:surface.connect = </World/envs/env_0/Object/geometry/material/Shader.outputs:surface>
+                        float physics:dynamicFriction = 1.5
+                        float physics:restitution = 0
+                        float physics:staticFriction = 1.5
+                        float physxMaterial:compliantContactDamping = 0
+                        float physxMaterial:compliantContactStiffness = 0
+                        uniform token physxMaterial:frictionCombineMode = "max"
+                        uniform token physxMaterial:restitutionCombineMode = "min"
+
+                        def Shader "Shader"
+                        {
+                            uniform token info:id = "UsdPreviewSurface"
+                            float3 inputs:diffuseColor = (0.15, 0.15, 0.15)
+                            float3 inputs:emissiveColor = (0, 0, 0)
+                            float inputs:metallic = 1
+                            float inputs:opacity = 1
+                            float inputs:roughness = 0.5
+                            token outputs:displacement
+                            token outputs:surface
+                        }
+                    }
+                }
+            }
+
+            def Xform "Robot" (
+                prepend references = @../../unitree_sim_isaaclab/assets/robots/g1-29dof_wholebody_dex1/g1_29dof_with_dex1_rev_1_0.usd@
+            )
+            {
+                float physxRigidBody:sleepThreshold = 0
+                quatd xformOp:orient = (1, 0, 0, 0)
+                double3 xformOp:scale = (1, 1, 1)
+                double3 xformOp:translate = (-3.9000000953674316, -2.8181099891662598, 0.800000011920929)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+                over "pelvis" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    bool physxArticulation:enabledSelfCollisions = 0
+                    int physxArticulation:solverPositionIterationCount = 4
+                    int physxArticulation:solverVelocityIterationCount = 1
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "imu_in_pelvis" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hip_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hip_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hip_yaw_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_knee_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_ankle_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_ankle_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "pelvis_contour_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hip_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hip_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hip_yaw_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_knee_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_ankle_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_ankle_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "waist_yaw_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "waist_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "torso_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "d435_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+
+                    def Camera "front_cam"
+                    {
+                        custom token cameraProjectionType = "pinhole"
+                        float2 clippingRange = (0.1, 100000)
+                        float focalLength = 7.6
+                        float focusDistance = 400
+                        float fStop = 0
+                        float horizontalAperture = 20
+                        float horizontalApertureOffset = 0
+                        bool omni:kit:cameraLock = 1
+                        float verticalAperture = 15
+                        float verticalApertureOffset = 0
+                        quatd xformOp:orient = (0.5, 0.5, -0.5, -0.5)
+                        double3 xformOp:scale = (1, 1, 1)
+                        double3 xformOp:translate = (0, 0, 0)
+                        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                    }
+
+                    def Camera "PerspectiveCamera_robot"
+                    {
+                        custom token cameraProjectionType = "pinhole"
+                        float2 clippingRange = (0.1, 100000)
+                        float focalLength = 12
+                        float focusDistance = 400
+                        float fStop = 0
+                        float horizontalAperture = 27
+                        float horizontalApertureOffset = 0
+                        bool omni:kit:cameraLock = 1
+                        float verticalAperture = 20.25
+                        float verticalApertureOffset = 0
+                        quatd xformOp:orient = (0.5129185914993286, 0.5129185914993286, -0.4867386817932129, -0.4867386817932129)
+                        double3 xformOp:scale = (1, 1, 1)
+                        double3 xformOp:translate = (-0.8999999761581421, 0, 0)
+                        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                    }
+                }
+
+                over "head_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "imu_in_torso" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_shoulder_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_shoulder_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_shoulder_yaw_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_elbow_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_wrist_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_wrist_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_wrist_yaw_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hand_base_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+
+                    def Camera "left_wrist_camera"
+                    {
+                        custom token cameraProjectionType = "pinhole"
+                        float2 clippingRange = (0.1, 100000)
+                        float focalLength = 12
+                        float focusDistance = 400
+                        float fStop = 0
+                        float horizontalAperture = 20
+                        float horizontalApertureOffset = 0
+                        bool omni:kit:cameraLock = 1
+                        float verticalAperture = 15
+                        float verticalApertureOffset = 0
+                        quatd xformOp:orient = (0.9396923780441284, 0.34202083945274353, -0, 0)
+                        double3 xformOp:scale = (1, 1, 1)
+                        double3 xformOp:translate = (0.025410279631614685, 0.04500000178813934, 0.13500000536441803)
+                        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                    }
+                }
+
+                over "left_hand_Link1_1" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hand_Link1_2" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hand_Link1_3" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hand_Link2_1" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hand_Link2_2" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "left_hand_Link2_3" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "logo_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "mid360_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_shoulder_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_shoulder_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_shoulder_yaw_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_elbow_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_wrist_roll_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_wrist_pitch_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_wrist_yaw_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hand_base_link" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+
+                    def Camera "right_wrist_camera"
+                    {
+                        custom token cameraProjectionType = "pinhole"
+                        float2 clippingRange = (0.1, 100000)
+                        float focalLength = 12
+                        float focusDistance = 400
+                        float fStop = 0
+                        float horizontalAperture = 20
+                        float horizontalApertureOffset = 0
+                        bool omni:kit:cameraLock = 1
+                        float verticalAperture = 15
+                        float verticalApertureOffset = 0
+                        quatd xformOp:orient = (0.9396923780441284, 0.34202083945274353, -0, 0)
+                        double3 xformOp:scale = (1, 1, 1)
+                        double3 xformOp:translate = (-0.025410279631614685, 0.04500000178813934, 0.13500000536441803)
+                        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                    }
+                }
+
+                over "right_hand_Link1_1" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hand_Link1_2" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hand_Link1_3" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hand_Link2_1" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hand_Link2_2" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+
+                over "right_hand_Link2_3" (
+                    prepend apiSchemas = ["PhysxRigidBodyAPI", "PhysxContactReportAPI"]
+                )
+                {
+                    float physxContactReport:threshold = 0
+                    float physxRigidBody:angularDamping = 0
+                    bool physxRigidBody:disableGravity = 0
+                    float physxRigidBody:linearDamping = 0
+                    float physxRigidBody:maxAngularVelocity = 1000
+                    float physxRigidBody:maxDepenetrationVelocity = 1
+                    float physxRigidBody:maxLinearVelocity = 1000
+                    bool physxRigidBody:retainAccelerations = 1
+                }
+            }
+        }
+    }
+
+    def DomeLight "light"
+    {
+        color3f inputs:color = (0.75, 0.75, 0.75)
+        float inputs:colorTemperature = 6500
+        bool inputs:enableColorTemperature = 0
+        float inputs:exposure = 0
+        float inputs:intensity = 3000
+        bool inputs:normalize = 0
+        asset inputs:texture:file
+        token inputs:texture:format = "automatic"
+        bool visibleInPrimaryRay = 1
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+
+    def Camera "PerspectiveCamera"
+    {
+        custom token cameraProjectionType = "pinhole"
+        float2 clippingRange = (0.1, 100000)
+        float focalLength = 7.6
+        float focusDistance = 400
+        float fStop = 0
+        float horizontalAperture = 20
+        float horizontalApertureOffset = 0
+        bool omni:kit:cameraLock = 1
+        float verticalAperture = 15
+        float verticalApertureOffset = 0
+        quatd xformOp:orient = (0.7879474759101868, 0.4074365496635437, 0.17040225863456726, 0.42906537652015686)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (-1.899999976158142, -5, 1.7999999523162842)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+    }
+}
+

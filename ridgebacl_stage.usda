@@ -1,0 +1,493 @@
+#usda 1.0
+(
+    customLayerData = {
+        dictionary cameraSettings = {
+            dictionary Front = {
+                double3 position = (5, 0, 0)
+                double radius = 5
+            }
+            dictionary Perspective = {
+                double3 position = (-1.7640252140797124, -8.945724228674194, 4.47584301638118)
+                double3 target = (5.7256706970663265, 6.716637366782836, -3.0152014411719588)
+            }
+            dictionary Right = {
+                double3 position = (0, -5, 0)
+                double radius = 5
+            }
+            dictionary Top = {
+                double3 position = (0, 0, 5)
+                double radius = 5
+            }
+            string boundCamera = "/OmniverseKit_Persp"
+        }
+        dictionary omni_layer = {
+            string authoring_layer = "./ridgebacl_stage.usda"
+            dictionary locked = {
+            }
+            dictionary muteness = {
+            }
+        }
+        dictionary renderSettings = {
+        }
+    }
+    defaultPrim = "World"
+    endTimeCode = 1000000
+    metersPerUnit = 1
+    startTimeCode = 0
+    subLayers = [
+        @./ridgeback_robot.usda@,
+        @./warehouse.usda@,
+        @./ridgeback_env.usda@
+    ]
+    timeCodesPerSecond = 60
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "Environment"
+    {
+        int ground:size = 1400
+        string ground:type = "On"
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (0, 0, 0)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        def DistantLight "defaultLight" (
+            prepend apiSchemas = ["ShapingAPI"]
+        )
+        {
+            float inputs:angle = 1
+            float inputs:intensity = 3000
+            float inputs:shaping:cone:angle = 180
+            float inputs:shaping:cone:softness
+            float inputs:shaping:focus
+            color3f inputs:shaping:focusTint
+            asset inputs:shaping:ies:file
+            quatd xformOp:orient = (0.6532814824381883, 0.2705980500730985, 0.27059805007309845, 0.6532814824381882)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+        }
+
+        def DomeLight "Sky" (
+            prepend apiSchemas = ["ShapingAPI"]
+        )
+        {
+            float inputs:colorTemperature = 6250
+            bool inputs:enableColorTemperature = 1
+            float inputs:exposure = 9
+            float inputs:intensity = 1
+            float inputs:shaping:cone:angle = 180
+            float inputs:shaping:cone:softness
+            float inputs:shaping:focus
+            color3f inputs:shaping:focusTint
+            asset inputs:shaping:ies:file
+            asset inputs:texture:file = @../extscache/omni.kit.stage_templates-2.0.0 69cbf6ad/data/CarLight_512x256.hdr@
+            token inputs:texture:format = "latlong"
+            token visibility = "inherited"
+            quatd xformOp:orient = (1, 0, 0, 0)
+            double3 xformOp:rotateXYZ = (0, 0, 0)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 305)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+
+        def DistantLight "DistantLight" (
+            prepend apiSchemas = ["ShapingAPI"]
+        )
+        {
+            float inputs:angle = 2.5
+            float inputs:colorTemperature = 7250
+            bool inputs:enableColorTemperature = 1
+            float inputs:exposure = 10
+            float inputs:intensity = 1
+            float inputs:shaping:cone:angle = 180
+            float inputs:shaping:cone:softness
+            float inputs:shaping:focus
+            color3f inputs:shaping:focusTint
+            asset inputs:shaping:ies:file
+            token visibility = "inherited"
+            quatd xformOp:orient = (0.6532814824381883, 0.2705980500730985, 0.27059805007309845, 0.6532814824381882)
+            double3 xformOp:rotateXYZ = (-15, 0, 0)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 305)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+
+        def Scope "Looks"
+        {
+            def Material "Grid"
+            {
+                token outputs:mdl:displacement.connect = </World/Environment/Looks/Grid/Shader.outputs:out>
+                token outputs:mdl:surface.connect = </World/Environment/Looks/Grid/Shader.outputs:out>
+                token outputs:mdl:volume.connect = </World/Environment/Looks/Grid/Shader.outputs:out>
+
+                def Shader "Shader"
+                {
+                    uniform token info:implementationSource = "sourceAsset"
+                    uniform asset info:mdl:sourceAsset = @OmniPBR.mdl@
+                    uniform token info:mdl:sourceAsset:subIdentifier = "OmniPBR"
+                    float inputs:albedo_add = 0
+                    float inputs:albedo_brightness = 0.52
+                    float inputs:albedo_desaturation = 1
+                    asset inputs:diffuse_texture = @../extscache/omni.kit.stage_templates-2.0.0 69cbf6ad/data/ov_uv_grids_basecolor_1024.png@ (
+                        colorSpace = "sRGB"
+                        customData = {
+                            asset default = @@
+                        }
+                    )
+                    bool inputs:project_uvw = 0
+                    float inputs:reflection_roughness_constant = 0.333
+                    float inputs:texture_rotate = 0 (
+                        customData = {
+                            float default = 0
+                        }
+                    )
+                    float2 inputs:texture_scale = (0.5, 0.5) (
+                        customData = {
+                            float2 default = (1, 1)
+                        }
+                    )
+                    float2 inputs:texture_translate = (0, 0) (
+                        customData = {
+                            float2 default = (0, 0)
+                        }
+                    )
+                    bool inputs:world_or_object = 0 (
+                        customData = {
+                            bool default = 0
+                        }
+                    )
+                    token outputs:out (
+                        renderType = "material"
+                    )
+                }
+            }
+        }
+
+        def Mesh "ground" (
+            prepend apiSchemas = ["MaterialBindingAPI"]
+        )
+        {
+            float3[] extent = [(-50, -50, 0), (50, 50, 0)]
+            int[] faceVertexCounts = [4]
+            int[] faceVertexIndices = [0, 1, 3, 2]
+            rel material:binding = </World/Environment/Looks/Grid> (
+                bindMaterialAs = "weakerThanDescendants"
+            )
+            normal3f[] normals = [(0, 0, 1), (0, 0, 1), (0, 0, 1), (0, 0, 1)] (
+                interpolation = "faceVarying"
+            )
+            point3f[] points = [(-50, -50, 0), (50, -50, 0), (-50, 50, 0), (50, 50, 0)]
+            texCoord2f[] primvars:st = [(0, 0), (1, 0), (1, 1), (0, 1)] (
+                interpolation = "faceVarying"
+            )
+            uniform token subdivisionScheme = "none"
+            quatd xformOp:orient = (1, 0, 0, 0)
+            double3 xformOp:rotateXYZ = (0, 0, 0)
+            double3 xformOp:scale = (1, 1, 1)
+            double3 xformOp:translate = (0, 0, 0)
+            uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ", "xformOp:scale"]
+        }
+
+        def Plane "groundCollider" (
+            prepend apiSchemas = ["PhysicsCollisionAPI"]
+        )
+        {
+            uniform token axis = "Z"
+            uniform token purpose = "guide"
+        }
+    }
+
+    over "ridgeback_ur5"
+    {
+        string isaac:namespace (
+            displayName = "Namespace"
+            doc = "Namespace of the prim in Isaac Sim"
+        )
+        quatd xformOp:orient = (1, 0, 0, 0)
+        double3 xformOp:scale = (1, 1, 1)
+        double3 xformOp:translate = (1.537565759451234, 0, 0.06695232254232852)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+
+        over "base_link"
+        {
+            over "visuals"
+            {
+                over "mesh_14"
+                {
+                    quatd xformOp:orient = (1, 0, 0, 0)
+                    double3 xformOp:scale = (1, 1, 1)
+                    double3 xformOp:translate = (0, 0, 0)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
+                }
+            }
+
+            over "ur_arm_shoulder_pan_joint"
+            {
+                float state:angular:physics:position = -0.0035309177
+                float state:angular:physics:velocity = -0.872465
+            }
+        }
+
+        over "world"
+        {
+            over "dummy_base_prismatic_x_joint"
+            {
+                custom string isaac:nameOverride (
+                    displayName = "Name Override"
+                    doc = "Name override for prim lookup in base name search"
+                )
+                float state:linear:physics:position = -0.0044083176
+                float state:linear:physics:velocity = -0.00014062478
+            }
+        }
+
+        over "dummy_base_x"
+        {
+            over "dummy_base_prismatic_y_joint"
+            {
+                float state:linear:physics:position = -0.0002007329
+                float state:linear:physics:velocity = -0.000012147824
+            }
+        }
+
+        over "dummy_base_y"
+        {
+            over "dummy_base_revolute_z_joint"
+            {
+                float state:angular:physics:position = 0.00394162
+                float state:angular:physics:velocity = -0.0012715928
+            }
+        }
+
+        over "ur_arm_shoulder_link"
+        {
+            over "ur_arm_shoulder_lift_joint"
+            {
+                float state:angular:physics:position = -74.373375
+                float state:angular:physics:velocity = -3.8487976
+            }
+        }
+
+        over "ur_arm_upper_arm_link"
+        {
+            over "ur_arm_elbow_joint"
+            {
+                float state:angular:physics:position = 75.34184
+                float state:angular:physics:velocity = -5.606977
+            }
+        }
+
+        over "ur_arm_forearm_link"
+        {
+            over "ur_arm_wrist_1_joint"
+            {
+                float state:angular:physics:position = 0.002008059
+                float state:angular:physics:velocity = -0.21572463
+            }
+        }
+
+        over "ur_arm_wrist_1_link"
+        {
+            over "ur_arm_wrist_2_joint"
+            {
+                float state:angular:physics:position = 89.99988
+                float state:angular:physics:velocity = -0.017031448
+            }
+        }
+
+        over "ur_arm_wrist_2_link"
+        {
+            over "ur_arm_wrist_3_joint"
+            {
+                float state:angular:physics:position = -2.4301832e-8
+                float state:angular:physics:velocity = -0.00001934984
+            }
+        }
+
+        over "ur_arm_wrist_3_link"
+        {
+        }
+    }
+}
+
+def "Render" (
+    hide_in_stage_window = true
+    no_delete = true
+)
+{
+    def "OmniverseKit"
+    {
+        def "HydraTextures" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            def RenderProduct "omni_kit_widget_viewport_ViewportTexture_0" (
+                prepend apiSchemas = ["OmniRtxSettingsCommonAdvancedAPI_1", "OmniRtxSettingsRtAdvancedAPI_1", "OmniRtxSettingsPtAdvancedAPI_1", "OmniRtxPostColorGradingAPI_1", "OmniRtxPostChromaticAberrationAPI_1", "OmniRtxPostBloomPhysicalAPI_1", "OmniRtxPostMatteObjectAPI_1", "OmniRtxPostCompositingAPI_1", "OmniRtxPostDofAPI_1", "OmniRtxPostMotionBlurAPI_1", "OmniRtxPostTvNoiseAPI_1", "OmniRtxPostTonemapIrayReinhardAPI_1", "OmniRtxPostDebugSettingsAPI_1", "OmniRtxDebugSettingsAPI_1"]
+                hide_in_stage_window = true
+                no_delete = true
+            )
+            {
+                rel camera = </OmniverseKit_Persp>
+                token omni:rtx:background:source:texture:textureMode = "repeatMirrored"
+                token omni:rtx:background:source:type = "domeLight"
+                bool omni:rtx:dlss:frameGeneration = 0
+                bool omni:rtx:material:db:nonVisualMaterialCSV:enabled = 0
+                bool omni:rtx:material:db:syncLoads = 1
+                token omni:rtx:post:dlss:execMode = "performance"
+                bool omni:rtx:post:registeredCompositing:invertColorCorrection = 1
+                bool omni:rtx:post:registeredCompositing:invertToneMap = 1
+                bool omni:rtx:pt:lightcache:cached:dontResolveConflicts = 1
+                int omni:rtx:pt:maxSamplesPerLaunch = 2073600
+                int omni:rtx:pt:mgpu:maxPixelsPerRegionExponent = 12
+                color3f omni:rtx:rt:ambientLight:color = (0.1, 0.1, 0.1)
+                bool omni:rtx:rt:demoire = 0
+                bool omni:rtx:rt:ecoMode:enabled
+                bool omni:rtx:rt:lightcache:spatialCache:dontResolveConflicts = 1
+                bool omni:rtx:scene:hydra:materialSyncLoads = 1
+                bool omni:rtx:scene:hydra:mdlMaterialWarmup = 1
+                uint omni:rtx:viewTile:limit = 4294967295
+                rel orderedVars = </Render/Vars/LdrColor>
+                custom bool overrideClipRange = 0
+                uniform int2 resolution = (1280, 720)
+            }
+        }
+    }
+
+    def RenderSettings "OmniverseGlobalRenderSettings" (
+        prepend apiSchemas = ["OmniRtxSettingsGlobalRtAdvancedAPI_1", "OmniRtxSettingsGlobalPtAdvancedAPI_1"]
+        no_delete = true
+    )
+    {
+        rel products = </Render/OmniverseKit/HydraTextures/omni_kit_widget_viewport_ViewportTexture_0>
+    }
+
+    def "Vars"
+    {
+        def RenderVar "LdrColor" (
+            hide_in_stage_window = true
+            no_delete = true
+        )
+        {
+            uniform string sourceName = "LdrColor"
+        }
+    }
+}
+
+def "Graphs"
+{
+    def OmniGraph "Velocity_Controller"
+    {
+        token evaluationMode = "Automatic"
+        token evaluator:type = "execution"
+        token fabricCacheBacking = "StageWithoutHistory"
+        int2 fileFormatVersion = (1, 9)
+        token pipelineStage = "pipelineStageSimulation"
+
+        def OmniGraphNode "OnPlaybackTick" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            token node:type = "omni.graph.action.OnPlaybackTick"
+            int node:typeVersion = 2
+            custom double outputs:deltaSeconds
+            custom double outputs:frame
+            custom uint outputs:tick (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            custom double outputs:time
+            uniform float2 ui:nodegraph:node:pos = (-1795.3708, 83.75168)
+        }
+
+        def OmniGraphNode "JointCommandArray" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            custom int inputs:arraySize = 3
+            custom token inputs:arrayType = "double[]" (
+                allowedTokens = ["auto", "bool[]", "double[]", "float[]", "half[]", "int[]", "int64[]", "token[]", "uchar[]", "uint[]", "uint64[]", "double[2][]", "double[3][]", "double[4][]", "matrixd[2][]", "matrixd[3][]", "matrixd[4][]", "float[2][]", "float[3][]", "float[4][]", "half[2][]", "half[3][]", "half[4][]", "int[2][]", "int[3][]", "int[4][]", "timecode[]", "frame[4][]", "colord[3][]", "colorf[3][]", "colorh[3][]", "colord[4][]", "colorf[4][]", "colorh[4][]", "normald[3][]", "normalf[3][]", "normalh[3][]", "pointd[3][]", "pointf[3][]", "pointh[3][]", "quatd[4][]", "quatf[4][]", "quath[4][]", "texcoordd[2][]", "texcoordf[2][]", "texcoordh[2][]", "texcoordd[3][]", "texcoordf[3][]", "texcoordh[3][]", "vectord[3][]", "vectorf[3][]", "vectorh[3][]"]
+            )
+            custom token inputs:input0 (
+                customData = {
+                    dictionary omni = {
+                        dictionary graph = {
+                            double attrValue = 1
+                            string resolvedType = "double"
+                        }
+                    }
+                }
+            )
+            custom double inputs:input1 = 0
+            custom double inputs:input2 = 0
+            token node:type = "omni.graph.nodes.ConstructArray"
+            int node:typeVersion = 1
+            custom token outputs:array
+            uniform float2 ui:nodegraph:node:pos = (-1260.6543, 338.89868)
+        }
+
+        def OmniGraphNode "ArticulationController" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            custom double[] inputs:effortCommand
+            custom uint inputs:execIn (
+                customData = {
+                    bool isExecution = 1
+                }
+            )
+            prepend uint inputs:execIn.connect = </Graphs/Velocity_Controller/OnPlaybackTick.outputs:tick>
+            custom int[] inputs:jointIndices
+            custom token[] inputs:jointNames
+            prepend token[] inputs:jointNames.connect = </Graphs/Velocity_Controller/JointNameArray.outputs:array>
+            custom double[] inputs:positionCommand
+            custom string inputs:robotPath
+            custom rel inputs:targetPrim = </World/ridgeback_ur5> (
+                customData = {
+                    dictionary omni = {
+                        dictionary graph = {
+                            string relType = "target"
+                        }
+                    }
+                }
+            )
+            custom double[] inputs:velocityCommand
+            prepend double[] inputs:velocityCommand.connect = </Graphs/Velocity_Controller/JointCommandArray.outputs:array>
+            token node:type = "isaacsim.core.nodes.IsaacArticulationController"
+            int node:typeVersion = 1
+            uniform float2 ui:nodegraph:node:pos = (-1460.3878, 100.01536)
+        }
+
+        def OmniGraphNode "JointNameArray" (
+            prepend apiSchemas = ["NodeGraphNodeAPI"]
+        )
+        {
+            custom int inputs:arraySize = 3
+            custom token inputs:arrayType = "token[]" (
+                allowedTokens = ["auto", "bool[]", "double[]", "float[]", "half[]", "int[]", "int64[]", "token[]", "uchar[]", "uint[]", "uint64[]", "double[2][]", "double[3][]", "double[4][]", "matrixd[2][]", "matrixd[3][]", "matrixd[4][]", "float[2][]", "float[3][]", "float[4][]", "half[2][]", "half[3][]", "half[4][]", "int[2][]", "int[3][]", "int[4][]", "timecode[]", "frame[4][]", "colord[3][]", "colorf[3][]", "colorh[3][]", "colord[4][]", "colorf[4][]", "colorh[4][]", "normald[3][]", "normalf[3][]", "normalh[3][]", "pointd[3][]", "pointf[3][]", "pointh[3][]", "quatd[4][]", "quatf[4][]", "quath[4][]", "texcoordd[2][]", "texcoordf[2][]", "texcoordh[2][]", "texcoordd[3][]", "texcoordf[3][]", "texcoordh[3][]", "vectord[3][]", "vectorf[3][]", "vectorh[3][]"]
+            )
+            custom token inputs:input0 (
+                customData = {
+                    dictionary omni = {
+                        dictionary graph = {
+                            token attrValue = "dummy_base_prismatic_x_joint"
+                            string resolvedType = "token"
+                        }
+                    }
+                }
+            )
+            custom token inputs:input1 = "dummy_base_prismatic_y_joint"
+            custom token inputs:input2 = "dummy_base_revolute_z_joint"
+            token node:type = "omni.graph.nodes.ConstructArray"
+            int node:typeVersion = 1
+            custom token outputs:array
+            uniform float2 ui:nodegraph:node:pos = (-1799.7864, 234.98901)
+        }
+    }
+}
+

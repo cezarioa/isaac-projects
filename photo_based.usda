@@ -1,0 +1,394 @@
+#usda 1.0
+(
+    defaultPrim = "World"
+    metersPerUnit = 1
+    upAxis = "Z"
+)
+
+def Xform "World"
+{
+    def Xform "Environment"
+    {
+        def Scope "Looks"
+        {
+            def Material "mat_wall_light_gray"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_wall_light_gray/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.78, 0.82, 0.82)
+                    float inputs:roughness = 0.65
+                    token outputs:surface
+                }
+            }
+
+            def Material "mat_floor_gray_wood"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_floor_gray_wood/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.48, 0.52, 0.50)
+                    float inputs:roughness = 0.75
+                    token outputs:surface
+                }
+            }
+
+            def Material "mat_white_furniture"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_white_furniture/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.94, 0.94, 0.90)
+                    float inputs:roughness = 0.48
+                    token outputs:surface
+                }
+            }
+
+            def Material "mat_black_plastic"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_black_plastic/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.015, 0.015, 0.014)
+                    float inputs:roughness = 0.42
+                    token outputs:surface
+                }
+            }
+
+            def Material "mat_gray_metal"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_gray_metal/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.45, 0.50, 0.52)
+                    float inputs:roughness = 0.35
+                    float inputs:metallic = 0.2
+                    token outputs:surface
+                }
+            }
+
+            def Material "mat_green_plant"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_green_plant/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.06, 0.28, 0.04)
+                    float inputs:roughness = 0.8
+                    token outputs:surface
+                }
+            }
+
+            def Material "mat_blue"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_blue/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.02, 0.38, 0.85)
+                    float inputs:roughness = 0.55
+                    token outputs:surface
+                }
+            }
+
+            def Material "mat_colorful"
+            {
+                token outputs:surface.connect = </World/Environment/Looks/mat_colorful/PBRShader.outputs:surface>
+                def Shader "PBRShader"
+                {
+                    uniform token info:id = "UsdPreviewSurface"
+                    color3f inputs:diffuseColor = (0.95, 0.12, 0.10)
+                    float inputs:roughness = 0.55
+                    token outputs:surface
+                }
+            }
+        }
+
+        def Xform "room_static"
+        {
+            def Cube "Floor"
+            {
+                double3 xformOp:scale = (3.8, 3.0, 0.04)
+                double3 xformOp:translate = (0, 0, -0.02)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                rel material:binding = </World/Environment/Looks/mat_floor_gray_wood>
+            }
+
+            def Cube "BackWall"
+            {
+                double3 xformOp:scale = (3.8, 0.05, 1.35)
+                double3 xformOp:translate = (0, 3.0, 1.35)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                rel material:binding = </World/Environment/Looks/mat_wall_light_gray>
+            }
+
+            def Cube "RightWall"
+            {
+                double3 xformOp:scale = (0.05, 3.0, 1.35)
+                double3 xformOp:translate = (3.8, 0, 1.35)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                rel material:binding = </World/Environment/Looks/mat_wall_light_gray>
+            }
+
+            def Cube "LeftLowCabinet_WallSide"
+            {
+                double3 xformOp:scale = (0.95, 0.28, 0.42)
+                double3 xformOp:translate = (-2.8, 2.65, 0.42)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                rel material:binding = </World/Environment/Looks/mat_white_furniture>
+            }
+
+            def Cube "BackLowCabinet"
+            {
+                double3 xformOp:scale = (0.75, 0.32, 0.45)
+                double3 xformOp:translate = (-0.45, 2.52, 0.45)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                rel material:binding = </World/Environment/Looks/mat_white_furniture>
+            }
+
+            def Cube "TallPlantPot"
+            {
+                double3 xformOp:scale = (0.32, 0.32, 0.36)
+                double3 xformOp:translate = (-1.5, 2.25, 0.36)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                rel material:binding = </World/Environment/Looks/mat_black_plastic>
+            }
+        }
+
+        def Xform "props"
+        {
+            def Xform "LargeWhiteDesk"
+            {
+                double3 xformOp:rotateXYZ = (0, 0, -12)
+                double3 xformOp:translate = (1.15, 0.75, 0.73)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+
+                def Cube "TableTop"
+                {
+                    double3 xformOp:scale = (1.75, 0.82, 0.055)
+                    double3 xformOp:translate = (0, 0, 0)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+                def Cube "LeftPanelLeg"
+                {
+                    double3 xformOp:scale = (0.08, 0.55, 0.67)
+                    double3 xformOp:translate = (-1.35, -0.1, -0.67)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+                def Cube "CenterCabinetLeg"
+                {
+                    double3 xformOp:scale = (0.32, 0.45, 0.67)
+                    double3 xformOp:translate = (-0.15, -0.05, -0.67)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+                def Cube "RightTLeg"
+                {
+                    double3 xformOp:scale = (0.10, 0.48, 0.67)
+                    double3 xformOp:translate = (1.35, 0.0, -0.67)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+            }
+
+            def Xform "DeskObjects"
+            {
+                double3 xformOp:rotateXYZ = (0, 0, -12)
+                double3 xformOp:translate = (1.15, 0.75, 1.08)
+                uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+
+                def Cylinder "DeskLampBase"
+                {
+                    double radius = 0.10
+                    double height = 0.035
+                    double3 xformOp:translate = (0.35, -0.05, 0.0)
+                    uniform token[] xformOpOrder = ["xformOp:translate"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+                def Cylinder "DeskLampPole"
+                {
+                    double radius = 0.018
+                    double height = 0.65
+                    double3 xformOp:rotateXYZ = (0, 0, 0)
+                    double3 xformOp:translate = (0.35, -0.05, 0.33)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+                def Cylinder "DeskLampHead"
+                {
+                    double radius = 0.11
+                    double height = 0.035
+                    double3 xformOp:translate = (0.35, -0.05, 0.68)
+                    uniform token[] xformOpOrder = ["xformOp:translate"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+                def Cube "TestTubeRack"
+                {
+                    double3 xformOp:scale = (0.35, 0.055, 0.055)
+                    double3 xformOp:translate = (-0.45, 0.02, 0.055)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_black_plastic>
+                }
+                def Cube "PenCup"
+                {
+                    double3 xformOp:scale = (0.11, 0.11, 0.16)
+                    double3 xformOp:translate = (0.95, 0.05, 0.16)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_black_plastic>
+                }
+                def Cube "HeartModelStand"
+                {
+                    double3 xformOp:scale = (0.18, 0.12, 0.04)
+                    double3 xformOp:translate = (1.35, 0.30, 0.04)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_white_furniture>
+                }
+            }
+
+            def Xform "MobileCart"
+            {
+                double3 xformOp:translate = (-1.05, -0.45, 0.48)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                def Cube "Crate"
+                {
+                    double3 xformOp:scale = (0.50, 0.38, 0.30)
+                    double3 xformOp:translate = (0, 0, 0.05)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_gray_metal>
+                }
+                def Cube "GreenLid"
+                {
+                    double3 xformOp:scale = (0.54, 0.42, 0.035)
+                    double3 xformOp:translate = (0, 0, 0.39)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_green_plant>
+                }
+                def Cube "BlueWhiteBin"
+                {
+                    double3 xformOp:scale = (0.42, 0.30, 0.20)
+                    double3 xformOp:translate = (0, 0, 0.67)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_blue>
+                }
+            }
+
+            def Xform "BlackRobotStand"
+            {
+                double3 xformOp:translate = (-2.05, -0.35, 0.55)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                def Cylinder "PoleA"
+                {
+                    double radius = 0.025
+                    double height = 1.05
+                    double3 xformOp:translate = (-0.12, 0, 0)
+                    uniform token[] xformOpOrder = ["xformOp:translate"]
+                    rel material:binding = </World/Environment/Looks/mat_black_plastic>
+                }
+                def Cylinder "PoleB"
+                {
+                    double radius = 0.025
+                    double height = 1.05
+                    double3 xformOp:translate = (0.12, 0, 0)
+                    uniform token[] xformOpOrder = ["xformOp:translate"]
+                    rel material:binding = </World/Environment/Looks/mat_black_plastic>
+                }
+                def Cube "Tray"
+                {
+                    double3 xformOp:scale = (0.32, 0.22, 0.08)
+                    double3 xformOp:translate = (0, 0, 0.58)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:scale"]
+                    rel material:binding = </World/Environment/Looks/mat_black_plastic>
+                }
+            }
+
+            def Xform "PlantCluster"
+            {
+                double3 xformOp:translate = (-1.5, 2.25, 0.72)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                def Cylinder "GrassBlade_01"
+                {
+                    double radius = 0.012
+                    double height = 1.7
+                    double3 xformOp:rotateXYZ = (18, 0, 8)
+                    double3 xformOp:translate = (-0.20, 0, 0.78)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+                    rel material:binding = </World/Environment/Looks/mat_green_plant>
+                }
+                def Cylinder "GrassBlade_02"
+                {
+                    double radius = 0.012
+                    double height = 1.6
+                    double3 xformOp:rotateXYZ = (-12, 0, -6)
+                    double3 xformOp:translate = (0.05, 0.05, 0.72)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+                    rel material:binding = </World/Environment/Looks/mat_green_plant>
+                }
+                def Cylinder "GrassBlade_03"
+                {
+                    double radius = 0.012
+                    double height = 1.55
+                    double3 xformOp:rotateXYZ = (8, 0, 18)
+                    double3 xformOp:translate = (0.22, -0.04, 0.70)
+                    uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+                    rel material:binding = </World/Environment/Looks/mat_green_plant>
+                }
+            }
+        }
+    }
+
+    def Xform "Robots"
+    {
+        def Xform "HumanoidPlaceholder"
+        {
+            double3 xformOp:translate = (-1.15, 0.85, 0.85)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+            def Capsule "Torso"
+            {
+                double radius = 0.22
+                double height = 0.45
+                rel material:binding = </World/Environment/Looks/mat_white_furniture>
+            }
+            def Sphere "Head"
+            {
+                double radius = 0.18
+                double3 xformOp:translate = (0, 0, 0.48)
+                uniform token[] xformOpOrder = ["xformOp:translate"]
+                rel material:binding = </World/Environment/Looks/mat_black_plastic>
+            }
+        }
+    }
+
+    def Xform "Lights"
+    {
+        def DistantLight "Sun"
+        {
+            float inputs:angle = 0.45
+            float inputs:intensity = 550
+            double3 xformOp:rotateXYZ = (-45, 0, 35)
+            uniform token[] xformOpOrder = ["xformOp:rotateXYZ"]
+        }
+        def RectLight "CeilingSoftbox"
+        {
+            float inputs:height = 5.0
+            float inputs:width = 5.0
+            float inputs:intensity = 450
+            double3 xformOp:translate = (0, 0.8, 2.8)
+            uniform token[] xformOpOrder = ["xformOp:translate"]
+        }
+    }
+
+    def Camera "Camera"
+    {
+        double3 xformOp:translate = (-3.0, -2.2, 1.6)
+        double3 xformOp:rotateXYZ = (62, 0, -38)
+        uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateXYZ"]
+        float focalLength = 20
+    }
+}
