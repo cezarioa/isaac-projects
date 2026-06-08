@@ -64,98 +64,99 @@ class RoomSceneCfg(InteractiveSceneCfg):
     # Room shell: the full template USD with walls, floor, ceiling.
     # Original authored props inside it should have their visibility
     # disabled in the USD file itself (pre-processing step).
-    # TODO: replace with the actual path to your room-shell USD
-    # room_shell = AssetBaseCfg(
-    #     prim_path="{ENV_REGEX_NS}/RoomShell",
-    #     spawn=sim_utils.UsdFileCfg(usd_path="<path_to_room_shell.usd>"),
-    # )
+    room_shell = AssetBaseCfg(
+        prim_path="{ENV_REGEX_NS}/RoomShell",
+        spawn=sim_utils.UsdFileCfg(
+            usd_path="/home/cezar/isaac-sim/isaac-projects/new_base_room.usda",
+        ),
+    )
 
     # --- table group (kinematic) --------------------------------------
 
     desk = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/RoomProps/Desk",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS.get("SM_Desk_04a", "")),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/room_props/SM_Desk_04a",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -7.5, FLOOR_Z)),
     )
 
     chair = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/RoomProps/Chair",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS.get("SM_Chair_04a", "")),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/room_props/SM_Chair_04a",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -9.15, FLOOR_Z)),
     )
 
     ridgeback = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/RoomProps/Ridgeback",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS.get("ridgeback_03", "")),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/room_props/ridgeback_03",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-8.95, -6.4, FLOOR_Z)),
     )
 
     # --- wall props (kinematic) ---------------------------------------
 
     medical_cabinet = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/MedicalCabinet",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_MedicalCabinet_01a"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_MedicalCabinet_01a",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-3.0, -10.0, FLOOR_Z)),
     )
 
     shelf_set = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/ShelfSet",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_ShelfSet_01a"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_ShelfSet_01a",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-4.32, -10.76, FLOOR_Z)),
     )
 
     supply_cabinet = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/SupplyCabinet",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_SupplyCabinet_01c"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_SupplyCabinet_01c",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-5.78, -10.91, FLOOR_Z)),
     )
 
     supply_cart_a = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/SupplyCartA",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_SupplyCart_02a"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_SupplyCart_02a",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-6.50, -10.95, FLOOR_Z)),
     )
 
     supply_cart_b = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/SupplyCartB",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_SupplyCart_03a"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_SupplyCart_03a",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.20, -11.0, FLOOR_Z)),
     )
 
     trash_can = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/TrashCan",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_TrashCan"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_TrashCan",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-8.10, -10.91, FLOOR_Z)),
     )
 
     plant_a = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/PlantA",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_Plant01"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_Plant01",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-2.80, -5.50, FLOOR_Z)),
     )
 
     plant_b = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/PlantB",
-        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_Plant02"]),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/wall_props/SM_Plant02",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-2.89, -6.35, FLOOR_Z)),
     )
 
     # --- tabletop objects (dynamic — affected by physics) -------------
 
     coffee_cup = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/TableProps/CoffeeCup",
-        spawn=_dynamic_usd_cfg(ASSET_PATHS["SM_CoffeeToGo"], mass=0.03),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/room_props/SM_Desk_04a/SM_CoffeeToGo",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -7.5, DESK_OBJECT_Z)),
     )
 
     desk_lamp = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/TableProps/DeskLamp",
-        spawn=_dynamic_usd_cfg(ASSET_PATHS["SM_Lamp02"], mass=0.15),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/room_props/SM_Desk_04a/SM_Lamp02",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-6.8, -7.5, DESK_OBJECT_Z)),
     )
 
     box_portable = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/TableProps/BoxPortable",
-        spawn=_dynamic_usd_cfg(ASSET_PATHS["SM_BoxPortableC"], mass=0.10),
+        prim_path="{ENV_REGEX_NS}/RoomShell/props/room_props/SM_Desk_04a/SM_BoxPortableC",
+        spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.2, -7.5, DESK_OBJECT_Z)),
     )
