@@ -1,25 +1,149 @@
 # placement_utils.py
-# Torch-batched geometry utilities for room randomization.
-# Every function operates on (N, ...) tensors so all environments
-# are processed in parallel.
+# Geometry utilities for room randomization.
+# Uses Oriented Bounding Boxes (OBB) with the Separating Axis Theorem
+# for collision detection, and continuous zone sampling.
 
 from __future__ import annotations
 
 import math
+from typing import List, Tuple
 
-import torch
+try:
+    import torch
+    HAS_TORCH = True
+except ImportError:
+    HAS_TORCH = False
 
-from .constants import (
-    ROOM_X_MIN,
-    ROOM_X_MAX,
-    ROOM_Y_MIN,
-    ROOM_Y_MAX,
-)
+try:
+    from .constants import (
+        BBox,
+        ROOM_X_MIN,
+        ROOM_X_MAX,
+        ROOM_Y_MIN,
+        ROOM_Y_MAX,
+        OBB_PLACEMENT_MARGIN,
+    )
+except ImportError:
+    from constants import (
+        BBox,
+        ROOM_X_MIN,
+        ROOM_X_MAX,
+        ROOM_Y_MIN,
+        ROOM_Y_MAX,
+        OBB_PLACEMENT_MARGIN,
+    )
 
 
-# ------------------------------------------------------------------
-# Quaternion helpers
-# ------------------------------------------------------------------
+# =====================================================================
+# OBB representation: (cx, cy, half_w, half_d, yaw_rad)
+# Stored as 5-element tuples for the pure-Python path,
+# or (N, 5) tensors for the batched path.
+# =====================================================================
+
+OBB = Tuple[float, float, float, float, float]  # cx, cy, hw, hd, yaw
+
+
+def make_obb(cx: float, cy: float, bbox: BBox, yaw_rad: float) -> OBB:
+    """Create an OBB tuple from a centre position, bbox, and yaw."""
+    return (cx, cy, bbox.half_w, bbox.half_d, yaw_rad)
+
+
+# =====================================================================
+# OBB corner computation
+# =====================================================================
+
+def obb_corners(cx: float, cy: float, hw: float, hd: float, yaw: float) -> List[Tuple[float, float]]:
+    """Compute the 4 world-space corners of an oriented bounding box.
+
+    Returns corners in order: (+w,+d), (-w,+d), (-w,-d), (+w,-d).
+    """
+    cos_y = math.cos(yaw)
+    sin_y = math.sin(yaw)
+
+    # Local corners → world
+    corners = []
+    for sx, sy in [(hw, hd), (-hw, hd), (-hw, -hd), (hw, -hd)]:
+        wx = cx + sx * cos_y - sy * sin_y
+        wy = cy + sx * sin_y + sy * cos_y
+        corners.append((wx, wy))
+    return corners
+
+
+# =====================================================================
+# Separating Axis Theorem (SAT) for OBB-OBB overlap
+# =====================================================================
+
+def _project_corners_onto_axis(corners: List[Tuple[float, float]], axis: Tuple[float, float]) -> Tuple[float, float]:
+    """Project 4 corners onto a 1D axis, return (min, max) scalar projection."""
+    dots = [c[0] * axis[0] + c[1] * axis[1] for c in corners]
+    return min(dots), max(dots)
+
+
+def obb_overlap(a: OBB, b: OBB, margin: float = 0.0) -> bool:
+    """Test whether two OBBs overlap using the Separating Axis Theorem.
+
+    Args:
+        a, b:   OBB tuples (cx, cy, half_w, half_d, yaw_rad).
+        margin: extra clearance added to each box before testing.
+
+    Returns:
+        True if the (possibly inflated) boxes overlap.
+    """
+    # Inflate boxes by margin.
+    a_inflated = (a[0], a[1], a[2] + margin, a[3] + margin, a[4])
+    b_inflated = (b[0], b[1], b[2] + margin, b[3] + margin, b[4])
+
+    corners_a = obb_corners(*a_inflated)
+    corners_b = obb_corners(*b_inflated)
+
+    # 4 candidate separating axes: 2 edge normals from each box.
+    axes = []
+    for box_yaw in (a[4], b[4]):
+        cos_y = math.cos(box_yaw)
+        sin_y = math.sin(box_yaw)
+        axes.append((cos_y, sin_y))        # along local X
+        axes.append((-sin_y, cos_y))       # along local Y
+
+    for axis in axes:
+        min_a, max_a = _project_corners_onto_axis(corners_a, axis)
+        min_b, max_b = _project_corners_onto_axis(corners_b, axis)
+        # If projections don't overlap on this axis → no collision.
+        if max_a < min_b or max_b < min_a:
+            return False
+
+    # All axes overlapped → collision.
+    return True
+
+
+# =====================================================================
+# Room bounds check (OBB corners must all be inside)
+# =====================================================================
+
+def obb_inside_room(box: OBB) -> bool:
+    """Check that all 4 corners of an OBB are inside the room bounds."""
+    for wx, wy in obb_corners(*box):
+        if wx < ROOM_X_MIN or wx > ROOM_X_MAX:
+            return False
+        if wy < ROOM_Y_MIN or wy > ROOM_Y_MAX:
+            return False
+    return True
+
+
+# =====================================================================
+# Overlap-any check
+# =====================================================================
+
+def obb_overlap_any(candidate: OBB, placed: List[OBB], margin: float = OBB_PLACEMENT_MARGIN) -> bool:
+    """Check if a candidate OBB overlaps any OBB in the placed list."""
+    for p in placed:
+        if obb_overlap(candidate, p, margin=margin):
+            return True
+    return False
+
+
+# =====================================================================
+# Quaternion / coordinate helpers (unchanged from before)
+# =====================================================================
 
 def yaw_to_quat(yaw_rad: torch.Tensor) -> torch.Tensor:
     """Convert Z-axis yaw angles to (w, x, y, z) quaternions.
@@ -32,15 +156,26 @@ def yaw_to_quat(yaw_rad: torch.Tensor) -> torch.Tensor:
     """
     half = yaw_rad * 0.5
     quat = torch.zeros(yaw_rad.shape[0], 4, device=yaw_rad.device, dtype=yaw_rad.dtype)
-    quat[:, 0] = torch.cos(half)   # w
-    # x, y stay 0 (Z-up yaw-only rotation)
-    quat[:, 3] = torch.sin(half)   # z
+    quat[:, 0] = torch.cos(half)
+    quat[:, 3] = torch.sin(half)
     return quat
 
 
-# ------------------------------------------------------------------
-# Coordinate transforms
-# ------------------------------------------------------------------
+def offset_from_yaw(
+    origin_x: float,
+    origin_y: float,
+    yaw_rad: float,
+    local_x: float,
+    local_y: float,
+) -> Tuple[float, float]:
+    """Apply a local offset rotated by yaw around an origin (scalar version)."""
+    cos_y = math.cos(yaw_rad)
+    sin_y = math.sin(yaw_rad)
+    return (
+        origin_x + local_x * cos_y - local_y * sin_y,
+        origin_y + local_x * sin_y + local_y * cos_y,
+    )
+
 
 def offset_from_yaw_batched(
     origin: torch.Tensor,
@@ -49,14 +184,13 @@ def offset_from_yaw_batched(
     local_y: float,
     z: float,
 ) -> torch.Tensor:
-    """Apply a local offset rotated by yaw around an origin.
+    """Apply a local offset rotated by yaw around an origin (batched).
 
     Args:
         origin:  (N, 3) world-space origin positions.
         yaw_rad: (N,) yaw angles in radians.
-        local_x: scalar X offset in the local frame.
-        local_y: scalar Y offset in the local frame.
-        z:       scalar Z for the result.
+        local_x, local_y: scalar local offset.
+        z: scalar Z value.
 
     Returns:
         (N, 3) world-space positions.
@@ -95,147 +229,6 @@ def local_to_world_xy(
     return torch.stack([world_x, world_y], dim=-1)
 
 
-# ------------------------------------------------------------------
-# Bounds & collision checks
-# ------------------------------------------------------------------
-
-def point_inside_room_batched(
-    xy: torch.Tensor,
-    radius: float,
-) -> torch.Tensor:
-    """Check whether (x, y) ± radius fits inside the room bounds.
-
-    Args:
-        xy:     (N, 2) candidate positions.
-        radius: scalar clearance radius.
-
-    Returns:
-        (N,) bool tensor — True if the circle fits inside the room.
-    """
-    return (
-        (xy[:, 0] >= ROOM_X_MIN + radius)
-        & (xy[:, 0] <= ROOM_X_MAX - radius)
-        & (xy[:, 1] >= ROOM_Y_MIN + radius)
-        & (xy[:, 1] <= ROOM_Y_MAX - radius)
-    )
-
-
-def is_free_batched(
-    candidates: torch.Tensor,
-    radius: float,
-    occupied: torch.Tensor,
-    margin: float = 0.15,
-) -> torch.Tensor:
-    """Vectorised circle-packing check.
-
-    Args:
-        candidates: (N, 2) proposed XY positions.
-        radius:     scalar radius of the proposed object.
-        occupied:   (N, K, 3) — x, y, spacing_radius of K already-placed objects.
-                    Use K=0 (empty) when nothing is placed yet.
-        margin:     extra spacing between circles.
-
-    Returns:
-        (N,) bool tensor — True if the candidate doesn't overlap any occupied circle.
-    """
-    if occupied.shape[1] == 0:
-        return torch.ones(candidates.shape[0], dtype=torch.bool, device=candidates.device)
-
-    # (N, 1, 2) - (N, K, 2) -> (N, K)
-    diff = candidates.unsqueeze(1) - occupied[:, :, :2]
-    dist = torch.norm(diff, dim=-1)  # (N, K)
-    min_sep = radius + occupied[:, :, 2] + margin  # (N, K)
-
-    return (dist >= min_sep).all(dim=1)  # (N,)
-
-
-def table_group_fits_batched(
-    desk_xy: torch.Tensor,
-    desk_yaw_rad: torch.Tensor,
-    chair_offset: tuple[float, float],
-    robot_offset: tuple[float, float],
-    desk_radius: float,
-    chair_radius: float,
-    robot_radius: float,
-    occupied: torch.Tensor,
-    margin: float = 0.45,
-) -> torch.Tensor:
-    """Check whether desk + chair + robot all fit without overlapping occupied circles.
-
-    Args:
-        desk_xy:       (N, 2) proposed desk positions.
-        desk_yaw_rad:  (N,) proposed desk yaw angles.
-        chair_offset:  (local_x, local_y) chair orbit offset.
-        robot_offset:  (local_x, local_y) robot orbit offset.
-        desk_radius:   desk spacing radius.
-        chair_radius:  chair spacing radius.
-        robot_radius:  robot spacing radius.
-        occupied:      (N, K, 3) already-placed objects.
-        margin:        extra spacing.
-
-    Returns:
-        (N,) bool — True if the entire table group fits.
-    """
-    N = desk_xy.shape[0]
-    device = desk_xy.device
-
-    desk_pos_3d = torch.zeros(N, 3, device=device)
-    desk_pos_3d[:, :2] = desk_xy
-
-    chair_pos = offset_from_yaw_batched(desk_pos_3d, desk_yaw_rad, chair_offset[0], chair_offset[1], 0.0)
-    robot_pos = offset_from_yaw_batched(desk_pos_3d, desk_yaw_rad, robot_offset[0], robot_offset[1], 0.0)
-
-    # All three must be inside the room.
-    ok = (
-        point_inside_room_batched(desk_xy, desk_radius)
-        & point_inside_room_batched(chair_pos[:, :2], chair_radius)
-        & point_inside_room_batched(robot_pos[:, :2], robot_radius)
-    )
-
-    # All three must be free of occupied circles.
-    ok = ok & is_free_batched(desk_xy, desk_radius, occupied, margin=margin)
-    ok = ok & is_free_batched(chair_pos[:, :2], chair_radius, occupied, margin=margin)
-    ok = ok & is_free_batched(robot_pos[:, :2], robot_radius, occupied, margin=margin)
-
-    return ok
-
-
-# ------------------------------------------------------------------
-# Wall-prop helpers
-# ------------------------------------------------------------------
-
-def wall_yaw_for_prop(
-    usd_name: str,
-    wall: str,
-    wall_yaws: dict[str, float],
-    yaw_by_wall: dict[tuple[str, str], float],
-) -> float:
-    """Compute the yaw for a wall prop on a given wall (scalar, not batched)."""
-    base = wall_yaws.get(wall, 0.0)
-    offset = yaw_by_wall.get((usd_name, wall), 0.0)
-    return base + offset
-
-
-def tall_prop_corner_ok(
-    slot_x: float,
-    slot_y: float,
-    wall: str,
-    back_wall_y: float,
-    right_wall_x: float,
-    clearance: float,
-) -> bool:
-    """Scalar check: is a tall prop far enough from the perpendicular wall corner?"""
-    if wall == "right" and slot_y < back_wall_y + clearance:
-        return False
-    if wall == "back" and slot_x > right_wall_x - clearance:
-        return False
-    return True
-
-
-# ------------------------------------------------------------------
-# Root-state builder
-# ------------------------------------------------------------------
-
 def build_root_state(
     pos: torch.Tensor,
     yaw_rad: torch.Tensor,
@@ -243,30 +236,15 @@ def build_root_state(
     env_ids: torch.Tensor,
     default_state: torch.Tensor,
 ) -> torch.Tensor:
-    """Build a (len(env_ids), 13) root-state tensor for write_root_state_to_sim.
-
-    Args:
-        pos:           (len(env_ids), 3) local positions (room frame).
-        yaw_rad:       (len(env_ids),) yaw angles in radians.
-        env_origins:   (total_envs, 3) from env.scene.env_origins.
-        env_ids:       (M,) indices of environments being reset.
-        default_state: (total_envs, 13) from asset.data.default_root_state.
-
-    Returns:
-        (M, 13) root state: pos + quat + zero velocities.
-    """
+    """Build a (len(env_ids), 13) root-state tensor for write_root_state_to_sim."""
     state = default_state[env_ids].clone()
 
-    # Position = local + env origin offset.
     state[:, 0] = pos[:, 0] + env_origins[env_ids, 0]
     state[:, 1] = pos[:, 1] + env_origins[env_ids, 1]
     state[:, 2] = pos[:, 2] + env_origins[env_ids, 2]
 
-    # Quaternion from yaw (w, x, y, z).
     quat = yaw_to_quat(yaw_rad)
     state[:, 3:7] = quat
-
-    # Zero velocities.
     state[:, 7:] = 0.0
 
     return state
