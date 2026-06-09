@@ -258,14 +258,14 @@ def _place_wall_props(
         yaw_rad = torch.zeros(M, device=device)
 
         for env_idx in range(M):
-            # Try up to 50 random positions across allowed walls.
+            # Try random positions across allowed walls.
             success = False
 
             # Shuffle which walls to try.
             allowed_zones = [z for z in WALL_ZONES if z.wall in meta.allowed_walls]
             rng.shuffle(allowed_zones)
 
-            for _ in range(50):
+            for _ in range(100):
                 # Pick a random wall zone.
                 zone = rng.choice(allowed_zones)
                 cx, cy, yaw = _sample_wall_position(zone, meta, rng)

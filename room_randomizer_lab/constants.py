@@ -17,12 +17,14 @@ ROOM_X_MIN = -13.0
 # The floor mesh in new_base_room.usda spans x=[-13, -1], but the
 # room-facing right wall is authored at about x=-2.5.
 ROOM_X_MAX = -2.5
-ROOM_Y_MIN = -11.0
+# Authored safe back-wall props sit around y=-10.75..-10.96 and
+# the back wall transform is farther back than the original -11.0 limit.
+ROOM_Y_MIN = -11.25
 ROOM_Y_MAX = -5.0
 FLOOR_Z = 0.0
 
 # Wall surface positions (room-facing edge of each wall).
-BACK_WALL_LINE_Y = -10.5
+BACK_WALL_LINE_Y = -10.95
 RIGHT_WALL_LINE_X = -2.5
 
 # ============================================================
@@ -66,13 +68,13 @@ WALL_ZONES: List[WallZone] = [
         wall="back",
         sample_min=-12.0,
         sample_max=-4.0,
-        fixed_coord=-10.3,   # prop center Y (slightly off the back wall surface)
+        fixed_coord=-10.75,  # prop center Y (matches authored back-wall props)
         base_yaw=0.0,        # face into room (+Y direction)
     ),
     # Right wall: props slide along Y, fixed near right wall X.
     WallZone(
         wall="right",
-        sample_min=-9.5,
+        sample_min=-10.0,
         sample_max=-5.5,
         fixed_coord=-3.0,    # prop center X (slightly off the right wall surface)
         base_yaw=math.pi / 2,  # face into room (-X direction)
@@ -124,7 +126,7 @@ ROBOT_SOURCE_CENTER = (-6.1, -5.95, 0.0)
 DESPAWN_Z = -100.0
 
 # Margin added around every OBB during placement checks (metres).
-OBB_PLACEMENT_MARGIN = 0.08
+OBB_PLACEMENT_MARGIN = 0.15
 
 # ============================================================
 # Wall prop metadata — bounding boxes replace spacing radii
@@ -145,42 +147,45 @@ class WallPropMeta:
 WALL_PROP_META: Dict[str, WallPropMeta] = {
     "medical_cabinet": WallPropMeta(
         "SM_MedicalCabinet_01a",
-        bbox=BBox(half_w=0.45, half_d=0.25),
+        bbox=BBox(half_w=0.55, half_d=0.35),
         tall=True,
         wall_offset=0.20,
-        yaw_offset=math.pi,  # faces opposite to wall normal
+        yaw_offset=0.0,
+        allowed_walls=("right",),
     ),
     "shelf_set": WallPropMeta(
         "SM_ShelfSet_01a",
-        bbox=BBox(half_w=0.50, half_d=0.25),
+        bbox=BBox(half_w=0.65, half_d=0.35),
         tall=True,
         yaw_offset=math.pi,
+        allowed_walls=("right",),
     ),
     "supply_cabinet": WallPropMeta(
         "SM_SupplyCabinet_01c",
-        bbox=BBox(half_w=0.40, half_d=0.25),
+        bbox=BBox(half_w=0.50, half_d=0.35),
         tall=True,
         yaw_offset=math.pi / 2,
+        allowed_walls=("back",),
     ),
     "trash_can": WallPropMeta(
         "SM_TrashCan",
-        bbox=BBox(half_w=0.20, half_d=0.20),
+        bbox=BBox(half_w=0.25, half_d=0.25),
     ),
     "plant_a": WallPropMeta(
         "SM_Plant01",
-        bbox=BBox(half_w=0.25, half_d=0.25),
+        bbox=BBox(half_w=0.35, half_d=0.35),
     ),
     "plant_b": WallPropMeta(
         "SM_Plant02",
-        bbox=BBox(half_w=0.25, half_d=0.25),
+        bbox=BBox(half_w=0.35, half_d=0.35),
     ),
     "supply_cart_a": WallPropMeta(
         "SM_SupplyCart_02a",
-        bbox=BBox(half_w=0.40, half_d=0.30),
+        bbox=BBox(half_w=0.55, half_d=0.40),
     ),
     "supply_cart_b": WallPropMeta(
         "SM_SupplyCart_03a",
-        bbox=BBox(half_w=0.40, half_d=0.30),
+        bbox=BBox(half_w=0.55, half_d=0.40),
     ),
 }
 
@@ -188,9 +193,9 @@ WALL_PROP_META: Dict[str, WallPropMeta] = {
 # Table group bounding boxes
 # ============================================================
 
-DESK_BBOX = BBox(half_w=0.60, half_d=0.40)
-CHAIR_BBOX = BBox(half_w=0.30, half_d=0.30)
-ROBOT_BBOX = BBox(half_w=0.50, half_d=0.35)
+DESK_BBOX = BBox(half_w=0.70, half_d=0.45)
+CHAIR_BBOX = BBox(half_w=0.40, half_d=0.40)
+ROBOT_BBOX = BBox(half_w=0.65, half_d=0.50)
 
 # ============================================================
 # Tabletop object metadata

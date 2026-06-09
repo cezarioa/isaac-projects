@@ -125,7 +125,7 @@ def randomize_one_room():
         allowed_zones = [z for z in WALL_ZONES if z.wall in meta.allowed_walls]
 
         success = False
-        for _ in range(50):
+        for _ in range(100):
             zone = rng.choice(allowed_zones)
             cx, cy, yaw = _sample_wall_position(zone, meta, rng)
             candidate = make_obb(cx, cy, meta.bbox, yaw)
