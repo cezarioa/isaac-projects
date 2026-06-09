@@ -79,6 +79,39 @@ def _sample_wall_position(zone, meta, rng):
     return cx, cy, yaw
 
 
+def _make_table_group(dx, dy, dyaw):
+    cx, cy = offset_from_yaw(dx, dy, dyaw, CHAIR_ORBIT_OFFSET[0], CHAIR_ORBIT_OFFSET[1])
+    rx, ry = offset_from_yaw(dx, dy, dyaw, ROBOT_ORBIT_OFFSET[0], ROBOT_ORBIT_OFFSET[1])
+
+    return {
+        "desk": make_obb(dx, dy, DESK_BBOX, dyaw),
+        "chair": make_obb(cx, cy, CHAIR_BBOX, dyaw + math.pi),
+        "robot": make_obb(rx, ry, ROBOT_BBOX, dyaw - math.pi / 2),
+    }
+
+
+def _validate_table_group(table_obbs, placed_obbs):
+    for box in table_obbs.values():
+        if not obb_inside_room(box):
+            return False
+
+    for box in table_obbs.values():
+        if obb_overlap_any(box, placed_obbs, margin=OBB_PLACEMENT_MARGIN):
+            return False
+
+    values = list(table_obbs.values())
+    for i, a in enumerate(values):
+        for b in values[i + 1:]:
+            if obb_overlap(a, b, margin=OBB_PLACEMENT_MARGIN):
+                return False
+
+    return True
+
+
+def _obb_to_result(box):
+    return {"cx": box[0], "cy": box[1], "yaw": box[4], "hw": box[2], "hd": box[3]}
+
+
 def randomize_one_room():
     rng = random.Random()
     placed_obbs = []
@@ -121,48 +154,54 @@ def randomize_one_room():
             })
 
     # --- Phase 2: Table group ---
-    desk_x, desk_y, desk_yaw = TABLE_FALLBACK_X, TABLE_FALLBACK_Y, rng.uniform(0, 2 * math.pi)
     tg_success = False
+    tg_source = "failed"
+    selected_table_obbs = None
 
     for _ in range(TABLE_GROUP_MAX_TRIES):
         dx = rng.uniform(TABLE_SAMPLE_X_MIN, TABLE_SAMPLE_X_MAX)
         dy = rng.uniform(TABLE_SAMPLE_Y_MIN, TABLE_SAMPLE_Y_MAX)
         dyaw = rng.uniform(0, 2 * math.pi)
 
-        cx, cy = offset_from_yaw(dx, dy, dyaw, CHAIR_ORBIT_OFFSET[0], CHAIR_ORBIT_OFFSET[1])
-        rx, ry = offset_from_yaw(dx, dy, dyaw, ROBOT_ORBIT_OFFSET[0], ROBOT_ORBIT_OFFSET[1])
-
-        chair_yaw = dyaw + math.pi
-        robot_yaw = dyaw - math.pi / 2
-
-        desk_obb = make_obb(dx, dy, DESK_BBOX, dyaw)
-        chair_obb = make_obb(cx, cy, CHAIR_BBOX, chair_yaw)
-        robot_obb = make_obb(rx, ry, ROBOT_BBOX, robot_yaw)
-
-        if not (obb_inside_room(desk_obb) and obb_inside_room(chair_obb) and obb_inside_room(robot_obb)):
-            continue
-        if obb_overlap_any(desk_obb, placed_obbs) or obb_overlap_any(chair_obb, placed_obbs) or obb_overlap_any(robot_obb, placed_obbs):
-            continue
-        if obb_overlap(desk_obb, chair_obb, margin=OBB_PLACEMENT_MARGIN) or \
-           obb_overlap(desk_obb, robot_obb, margin=OBB_PLACEMENT_MARGIN) or \
-           obb_overlap(chair_obb, robot_obb, margin=OBB_PLACEMENT_MARGIN):
+        table_obbs = _make_table_group(dx, dy, dyaw)
+        if not _validate_table_group(table_obbs, placed_obbs):
             continue
 
-        desk_x, desk_y, desk_yaw = dx, dy, dyaw
-        placed_obbs.extend([desk_obb, chair_obb, robot_obb])
+        selected_table_obbs = table_obbs
         tg_success = True
+        tg_source = "random"
         break
 
-    cx, cy = offset_from_yaw(desk_x, desk_y, desk_yaw, CHAIR_ORBIT_OFFSET[0], CHAIR_ORBIT_OFFSET[1])
-    rx, ry = offset_from_yaw(desk_x, desk_y, desk_yaw, ROBOT_ORBIT_OFFSET[0], ROBOT_ORBIT_OFFSET[1])
+    if not tg_success:
+        for _ in range(TABLE_GROUP_MAX_TRIES):
+            dyaw = rng.uniform(0, 2 * math.pi)
+            table_obbs = _make_table_group(TABLE_FALLBACK_X, TABLE_FALLBACK_Y, dyaw)
+            if not _validate_table_group(table_obbs, placed_obbs):
+                continue
 
-    results["desk"] = {"cx": desk_x, "cy": desk_y, "yaw": desk_yaw,
-                       "hw": DESK_BBOX.half_w, "hd": DESK_BBOX.half_d}
-    results["chair"] = {"cx": cx, "cy": cy, "yaw": desk_yaw + math.pi,
-                        "hw": CHAIR_BBOX.half_w, "hd": CHAIR_BBOX.half_d}
-    results["robot"] = {"cx": rx, "cy": ry, "yaw": desk_yaw - math.pi / 2,
-                        "hw": ROBOT_BBOX.half_w, "hd": ROBOT_BBOX.half_d}
+            selected_table_obbs = table_obbs
+            tg_success = True
+            tg_source = "fallback"
+            break
+
+    if tg_success:
+        placed_obbs.extend(selected_table_obbs.values())
+        results["desk"] = _obb_to_result(selected_table_obbs["desk"])
+        results["chair"] = _obb_to_result(selected_table_obbs["chair"])
+        results["robot"] = _obb_to_result(selected_table_obbs["robot"])
+        desk_x = results["desk"]["cx"]
+        desk_y = results["desk"]["cy"]
+        desk_yaw = results["desk"]["yaw"]
+    else:
+        results["desk"] = None
+        results["chair"] = None
+        results["robot"] = None
+
     results["tg_success"] = tg_success
+    results["tg_source"] = tg_source
+
+    if not tg_success:
+        return results
 
     # --- Phase 3: Desk objects ---
     desk_placed_obbs = []
@@ -251,6 +290,9 @@ def draw_room(ax, room, room_index):
 
     # Desk.
     d = room["desk"]
+    if d is None:
+        ax.annotate("TABLE GROUP SKIPPED", (-7.0, -7.5), fontsize=8, ha="center", color="#b00020")
+        return
     _draw_obb(ax, d["cx"], d["cy"], d["hw"], d["hd"], d["yaw"], "#4caf50", alpha=0.25, label="DESK")
 
     # Chair.
@@ -282,33 +324,47 @@ def print_room_text(room, room_index):
         print(f"    {wp['name']:20s}  DESPAWNED")
 
     d = room["desk"]
-    print(f"\n  Desk:   ({d['cx']:+6.2f}, {d['cy']:+6.2f})  yaw={math.degrees(d['yaw']):+6.1f}°  {'✅' if room.get('tg_success') else '⚠️ fallback'}")
-    c = room["chair"]
-    print(f"  Chair:  ({c['cx']:+6.2f}, {c['cy']:+6.2f})")
-    r = room["robot"]
-    print(f"  Robot:  ({r['cx']:+6.2f}, {r['cy']:+6.2f})")
+    if d is None:
+        print(f"\n  Table Group: SKIPPED (no valid random or fallback placement)")
+        print(f"\n  Desk Objects: skipped")
+    else:
+        status = room.get("tg_source", "unknown")
+        print(f"\n  Desk:   ({d['cx']:+6.2f}, {d['cy']:+6.2f})  yaw={math.degrees(d['yaw']):+6.1f}°  source={status}")
+        c = room["chair"]
+        print(f"  Chair:  ({c['cx']:+6.2f}, {c['cy']:+6.2f})")
+        r = room["robot"]
+        print(f"  Robot:  ({r['cx']:+6.2f}, {r['cy']:+6.2f})")
 
-    print(f"\n  Desk Objects ({len(room['desk_objects'])} placed):")
-    for obj in room["desk_objects"]:
-        print(f"    {obj['name']:20s}  world=({obj['wx']:+6.2f}, {obj['wy']:+6.2f})  local=({obj['lx']:+5.2f}, {obj['ly']:+5.2f})")
+        print(f"\n  Desk Objects ({len(room['desk_objects'])} placed):")
+        for obj in room["desk_objects"]:
+            print(f"    {obj['name']:20s}  world=({obj['wx']:+6.2f}, {obj['wy']:+6.2f})  local=({obj['lx']:+5.2f}, {obj['ly']:+5.2f})")
 
     # Validation: check all OBBs are inside room.
     issues = []
+    named_boxes = []
     for wp in placed:
         box = make_obb(wp["cx"], wp["cy"], BBox(wp["hw"], wp["hd"]), wp["yaw"])
+        named_boxes.append((wp["name"], box))
         if not obb_inside_room(box):
             issues.append(f"  ⚠️  {wp['name']} OBB extends outside room!")
-    for label, item in [("Desk", d), ("Chair", c), ("Robot", r)]:
-        box = make_obb(item["cx"], item["cy"], BBox(item["hw"], item["hd"]), item["yaw"])
-        if not obb_inside_room(box):
-            issues.append(f"  ⚠️  {label} OBB extends outside room!")
+    if d is not None:
+        for label, item in [("Desk", d), ("Chair", room["chair"]), ("Robot", room["robot"])]:
+            box = make_obb(item["cx"], item["cy"], BBox(item["hw"], item["hd"]), item["yaw"])
+            named_boxes.append((label, box))
+            if not obb_inside_room(box):
+                issues.append(f"  ⚠️  {label} OBB extends outside room!")
+
+    for i, (a_name, a_box) in enumerate(named_boxes):
+        for b_name, b_box in named_boxes[i + 1:]:
+            if obb_overlap(a_box, b_box, margin=OBB_PLACEMENT_MARGIN):
+                issues.append(f"  ⚠️  {a_name} overlaps {b_name}!")
 
     if issues:
         print(f"\n  VALIDATION ISSUES:")
         for issue in issues:
             print(f"    {issue}")
     else:
-        print(f"\n  ✅ All OBBs inside room bounds")
+        print(f"\n  ✅ All OBBs inside room bounds and non-overlapping")
 
 
 # =====================================================================

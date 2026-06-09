@@ -14,7 +14,9 @@ from typing import Dict, List, Tuple
 # ============================================================
 
 ROOM_X_MIN = -13.0
-ROOM_X_MAX = -1.0
+# The floor mesh in new_base_room.usda spans x=[-13, -1], but the
+# room-facing right wall is authored at about x=-2.5.
+ROOM_X_MAX = -2.5
 ROOM_Y_MIN = -11.0
 ROOM_Y_MAX = -5.0
 FLOOR_Z = 0.0
