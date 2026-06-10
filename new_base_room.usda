@@ -56,7 +56,7 @@ def Xform "World"
                 prepend apiSchemas = ["PhysicsRigidBodyAPI", "PhysxRigidBodyAPI"]
             )
             {
-                bool physics:kinematicEnabled = 0
+                bool physics:kinematicEnabled = 1
                 bool physics:rigidBodyEnabled = 1
 
                 def Mesh "WalkableFloor" (
@@ -791,7 +791,7 @@ def Xform "World"
                         bool physics:collisionEnabled = 1
                         float3 xformOp:rotateZYX = (0, 0, 0)
                         float3 xformOp:scale = (1.3, 0.02, 0.01)
-                        double3 xformOp:translate = (-391.4571170571554, -6.841628828915608, 0)
+                        double3 xformOp:translate = (0, 0, 0)
                         uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:rotateZYX", "xformOp:scale"]
                     }
 

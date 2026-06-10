@@ -154,7 +154,7 @@ class RoomSceneCfg(InteractiveSceneCfg):
             focal_length=24.0, focus_distance=400.0, horizontal_aperture=20.955, clipping_range=(0.1, 1.0e5)
         ),
         init_state=AssetBaseCfg.InitialStateCfg(
-            pos=(-7.5, -8.0, 8.0),
+            pos=(-7.1, -8.6, 14.8),
             rot=(0.7071068, 0.0, 0.7071068, 0.0) # Look down
         ),
     )
