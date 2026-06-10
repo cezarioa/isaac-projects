@@ -85,11 +85,11 @@ WALL_ZONES: List[WallZone] = [
 # Room interior sampling zone (for table group)
 # ============================================================
 
-TABLE_SAMPLE_X_MIN = -11.0
-TABLE_SAMPLE_X_MAX = -4.0
-TABLE_SAMPLE_Y_MIN = -9.5
-TABLE_SAMPLE_Y_MAX = -5.5
-TABLE_FALLBACK_X = -7.00
+TABLE_SAMPLE_X_MIN = -10.0
+TABLE_SAMPLE_X_MAX = -5.0
+TABLE_SAMPLE_Y_MIN = -9.0
+TABLE_SAMPLE_Y_MAX = -6.0
+TABLE_FALLBACK_X = -7.50
 TABLE_FALLBACK_Y = -7.50
 TABLE_GROUP_MAX_TRIES = 300
 
