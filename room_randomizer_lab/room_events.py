@@ -429,7 +429,7 @@ def _place_table_group(
 
     robot_pos = offset_from_yaw_batched(
         desk_positions, desk_yaws,
-        ROBOT_ORBIT_OFFSET[0], ROBOT_ORBIT_OFFSET[1], FLOOR_Z,
+        ROBOT_ORBIT_OFFSET[0], ROBOT_ORBIT_OFFSET[1], 0.175,
     )
     robot_yaw = desk_yaws - math.pi / 2
 
@@ -452,9 +452,13 @@ def _place_table_group(
     chair_state = build_root_state(chair_pos, chair_yaw, env_origins, env_ids, chair_asset.data.default_root_state)
     chair_asset.write_root_state_to_sim(chair_state, env_ids=env_ids)
 
-    robot_asset = env.scene["ridgeback"]
-    robot_state = build_root_state(robot_pos, robot_yaw, env_origins, env_ids, robot_asset.data.default_root_state)
-    robot_asset.write_root_state_to_sim(robot_state, env_ids=env_ids)
+    try:
+        robot_asset = env.scene["ridgeback"]
+    except KeyError:
+        robot_asset = None
+    if robot_asset is not None:
+        robot_state = build_root_state(robot_pos, robot_yaw, env_origins, env_ids, robot_asset.data.default_root_state)
+        robot_asset.write_root_state_to_sim(robot_state, env_ids=env_ids)
 
 
 # ======================================================================
@@ -469,7 +473,14 @@ def _place_desk_objects(
     desk_yaw_rad: torch.Tensor,
     min_table_objects: int = 2,
 ):
-    """Place tabletop objects on the desk surface with OBB collision."""
+    """Place tabletop objects on the desk surface with rejection sampling.
+
+    Randomly despawns 0–1 objects to achieve variable count (min_table_objects
+    to len(table_prop_names)).
+    """
+    if not table_prop_names:
+        return
+
     M = len(env_ids)
     device = env.device
     env_origins = env.scene.env_origins

@@ -34,12 +34,8 @@ class RoomEventCfg:
                 "plant_a",
                 "plant_b",
             ],
-            "table_prop_names": [
-                "coffee_cup",
-                "desk_lamp",
-                "box_portable",
-            ],
-            "min_table_objects": 2,
+            "table_prop_names": [],
+            "min_table_objects": 0,
         },
     )
 
