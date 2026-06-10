@@ -145,3 +145,17 @@ class RoomSceneCfg(InteractiveSceneCfg):
         spawn=None,
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-2.89, -6.35, FLOOR_Z)),
     )
+
+    # --- cameras ------------------------------------------------------
+
+    top_down_camera = AssetBaseCfg(
+        prim_path="{ENV_REGEX_NS}/TopDownCamera",
+        spawn=sim_utils.PinholeCameraCfg(
+            focal_length=24.0, focus_distance=400.0, horizontal_aperture=20.955, clipping_range=(0.1, 1.0e5)
+        ),
+        init_state=AssetBaseCfg.InitialStateCfg(
+            pos=(-7.5, -8.0, 8.0),
+            rot=(0.7071068, 0.0, 0.7071068, 0.0) # Look down
+        ),
+    )
+
