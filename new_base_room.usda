@@ -60,6 +60,7 @@ def Xform "World"
                 bool physics:rigidBodyEnabled = 1
 
                 def Mesh "WalkableFloor" (
+                    active = true
                     prepend apiSchemas = ["PhysicsCollisionAPI", "PhysxCollisionAPI", "PhysxConvexHullCollisionAPI", "PhysicsMeshCollisionAPI"]
                 )
                 {
@@ -908,74 +909,6 @@ def Xform "World"
             double3 xformOp:scale = (1, 1, 1)
             double3 xformOp:translate = (0, 0, 305)
             uniform token[] xformOpOrder = ["xformOp:translate", "xformOp:orient", "xformOp:scale"]
-        }
-    }
-
-    def PhysicsScene "PhysicsScene" (
-        prepend apiSchemas = ["PhysxSceneAPI"]
-    )
-    {
-    }
-
-    def OmniGraph "PushGraph"
-    {
-        token evaluationMode = "Automatic"
-        token evaluator:type = "push"
-        token fabricCacheBacking = "StageWithoutHistory"
-        int2 fileFormatVersion = (1, 9)
-        token pipelineStage = "pipelineStageSimulation"
-
-        def OmniGraphNode "room_staticCurveNode"
-        {
-            custom string inputs:IndividualOutputs
-            custom rel inputs:Prim = </World/Environment/room_static> (
-                customData = {
-                    dictionary omni = {
-                        dictionary graph = {
-                            string relType = "target"
-                        }
-                    }
-                }
-            )
-            custom timecode inputs:Time
-            custom bool inputs:UseGlobalTime
-            token node:type = "omni.anim.curve.core.AnimCurve"
-            int node:typeVersion = 5
-            custom rel outputs_AnimFrame (
-                customData = {
-                    dictionary omni = {
-                        dictionary graph = {
-                            string relType = "bundle"
-                        }
-                    }
-                }
-            )
-            uniform token visibility:x:defaultTangentType = "auto"
-            uniform int64[] visibility:x:inTangentTimes = [0]
-            uniform token[] visibility:x:inTangentTypes = ["auto"]
-            uniform double[] visibility:x:inTangentValues = [0]
-            uniform int64[] visibility:x:outTangentTimes = [0]
-            uniform token[] visibility:x:outTangentTypes = ["step"]
-            uniform double[] visibility:x:outTangentValues = [0]
-            uniform token visibility:x:postInfinityType = "constant"
-            uniform token visibility:x:preInfinityType = "constant"
-            uniform bool[] visibility:x:tangentBrokens = [0]
-            uniform bool[] visibility:x:tangentWeighteds = [0]
-            uniform int64[] visibility:x:times = [0]
-            uniform double[] visibility:x:values = [0]
-            uniform token xformOp:rotateX:x:defaultTangentType = "auto"
-            uniform int64[] xformOp:rotateX:x:inTangentTimes = [0]
-            uniform token[] xformOp:rotateX:x:inTangentTypes = ["auto"]
-            uniform double[] xformOp:rotateX:x:inTangentValues = [0]
-            uniform int64[] xformOp:rotateX:x:outTangentTimes = [0]
-            uniform token[] xformOp:rotateX:x:outTangentTypes = ["auto"]
-            uniform double[] xformOp:rotateX:x:outTangentValues = [0]
-            uniform token xformOp:rotateX:x:postInfinityType = "constant"
-            uniform token xformOp:rotateX:x:preInfinityType = "constant"
-            uniform bool[] xformOp:rotateX:x:tangentBrokens = [0]
-            uniform bool[] xformOp:rotateX:x:tangentWeighteds = [0]
-            uniform int64[] xformOp:rotateX:x:times = [0]
-            uniform double[] xformOp:rotateX:x:values = [0]
         }
     }
 }
