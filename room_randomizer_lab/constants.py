@@ -16,7 +16,7 @@ from typing import Dict, List, Tuple
 ROOM_X_MIN = -13.0
 # The floor mesh in new_base_room.usda spans x=[-13, -1], but the
 # room-facing right wall is authored at about x=-2.5.
-ROOM_X_MAX = -2.5
+ROOM_X_MAX = -0.5
 # Authored safe back-wall props sit around y=-10.75..-10.96 and
 # the back wall transform is farther back than the original -11.0 limit.
 ROOM_Y_MIN = -11.25
@@ -148,46 +148,47 @@ class WallPropMeta:
 WALL_PROP_META: Dict[str, WallPropMeta] = {
     "medical_cabinet": WallPropMeta(
         "SM_MedicalCabinet_01a",
-        bbox=BBox(half_w=0.55, half_d=0.35),
+        bbox=BBox(half_w=0.436, half_d=0.328),
         tall=True,
-        wall_offset=-0.50,
+        wall_offset=-0.172,
         yaw_offset=math.pi,
         allowed_walls=("right",),
     ),
     "shelf_set": WallPropMeta(
         "SM_ShelfSet_01a",
-        bbox=BBox(half_w=0.65, half_d=0.35),
+        bbox=BBox(half_w=0.861, half_d=0.280),
         tall=True,
-        wall_offset=-1.70,
+        wall_offset=-0.220,
         yaw_offset=math.pi,
         allowed_walls=("right",),
     ),
     "supply_cabinet": WallPropMeta(
         "SM_SupplyCabinet_01c",
-        bbox=BBox(half_w=0.50, half_d=0.35),
+        bbox=BBox(half_w=0.367, half_d=0.737),
         tall=True,
+        wall_offset=0.167,
         yaw_offset=math.pi / 2,
         allowed_walls=("back",),
     ),
     "trash_can": WallPropMeta(
         "SM_TrashCan",
-        bbox=BBox(half_w=0.25, half_d=0.25),
+        bbox=BBox(half_w=0.150, half_d=0.150),
     ),
     "plant_a": WallPropMeta(
         "SM_Plant01",
-        bbox=BBox(half_w=0.35, half_d=0.35),
+        bbox=BBox(half_w=0.652, half_d=0.771),
     ),
     "plant_b": WallPropMeta(
         "SM_Plant02",
-        bbox=BBox(half_w=0.35, half_d=0.35),
+        bbox=BBox(half_w=0.469, half_d=0.504),
     ),
     "supply_cart_a": WallPropMeta(
         "SM_SupplyCart_02a",
-        bbox=BBox(half_w=0.55, half_d=0.40),
+        bbox=BBox(half_w=0.421, half_d=0.228),
     ),
     "supply_cart_b": WallPropMeta(
         "SM_SupplyCart_03a",
-        bbox=BBox(half_w=0.55, half_d=0.40),
+        bbox=BBox(half_w=0.298, half_d=0.556),
         yaw_offset=math.pi / 2,
     ),
 }
@@ -196,8 +197,8 @@ WALL_PROP_META: Dict[str, WallPropMeta] = {
 # Table group bounding boxes
 # ============================================================
 
-DESK_BBOX = BBox(half_w=0.70, half_d=0.45)
-CHAIR_BBOX = BBox(half_w=0.40, half_d=0.40)
+DESK_BBOX = BBox(half_w=0.745, half_d=0.227)
+CHAIR_BBOX = BBox(half_w=0.347, half_d=0.343)
 ROBOT_BBOX = BBox(half_w=0.65, half_d=0.50)
 
 # ============================================================
@@ -212,9 +213,9 @@ class TablePropMeta:
 
 
 TABLE_PROP_META: Dict[str, TablePropMeta] = {
-    "coffee_cup":   TablePropMeta(bbox=BBox(half_w=0.05, half_d=0.05)),
-    "desk_lamp":    TablePropMeta(bbox=BBox(half_w=0.10, half_d=0.10)),
-    "box_portable": TablePropMeta(bbox=BBox(half_w=0.10, half_d=0.08)),
+    "coffee_cup":   TablePropMeta(bbox=BBox(half_w=0.043, half_d=0.043)),
+    "desk_lamp":    TablePropMeta(bbox=BBox(half_w=0.241, half_d=0.134)),
+    "box_portable": TablePropMeta(bbox=BBox(half_w=0.195, half_d=0.145)),
 }
 
 # ============================================================
