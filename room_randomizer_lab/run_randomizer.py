@@ -17,6 +17,7 @@ from isaaclab.app import AppLauncher
 parser = argparse.ArgumentParser(description="Run the Hospital Room Randomizer.")
 parser.add_argument("--num_envs", type=int, default=4, help="Number of environments to spawn.")
 parser.add_argument("--max_steps", type=int, default=0, help="Stop after this many simulation steps. Use 0 to run until closed.")
+parser.add_argument("--save_camera", action="store_true", help="Save top-down camera renders to camera_output/ on each reset.")
 AppLauncher.add_app_launcher_args(parser)
 args_cli = parser.parse_args()
 
@@ -25,6 +26,7 @@ simulation_app = app_launcher.app
 
 # 2. Imports after app launcher
 import torch
+import numpy as np
 import isaaclab.sim as sim_utils
 from isaaclab.envs import ManagerBasedEnv
 from isaaclab.managers import ActionTermCfg, ObservationGroupCfg, ObservationTermCfg
@@ -56,6 +58,28 @@ class DummyObservationsCfg:
 
 # ---------------------------------------------------------
 
+def _save_camera_images(env, reset_num, output_dir):
+    """Save top-down camera RGB images for every environment."""
+    try:
+        camera = env.scene["top_down_camera"]
+        rgb_data = camera.data.output["rgb"]  # (num_envs, H, W, 3 or 4)
+        for i in range(rgb_data.shape[0]):
+            img = rgb_data[i].cpu().numpy()
+            if img.shape[-1] == 4:  # RGBA → RGB
+                img = img[:, :, :3]
+            if img.max() <= 1.0:
+                img = (img * 255).clip(0, 255).astype(np.uint8)
+            else:
+                img = img.clip(0, 255).astype(np.uint8)
+            try:
+                from PIL import Image
+                Image.fromarray(img).save(output_dir / f"reset_{reset_num:04d}_env_{i}.png")
+            except ImportError:
+                np.save(output_dir / f"reset_{reset_num:04d}_env_{i}.npy", img)
+        print(f"[INFO] Saved {rgb_data.shape[0]} top-down images (reset {reset_num})", flush=True)
+    except Exception as e:
+        print(f"[WARN] Camera image save failed: {e}", flush=True)
+
 def main():
     # 3. Load the configuration
     env_cfg = RoomEnvCfg()
@@ -73,7 +97,15 @@ def main():
     # 5. Simulation Loop
     print("[INFO] Starting simulation loop. Press Ctrl+C to stop.", flush=True)
     step_count = 0
+    reset_count = 0
     reset_interval = 150  # Reset and randomize every 150 steps
+
+    # Camera output setup
+    camera_output_dir = None
+    if args_cli.save_camera:
+        camera_output_dir = Path(__file__).parent / "camera_output"
+        camera_output_dir.mkdir(exist_ok=True)
+        print(f"[INFO] Camera images will be saved to {camera_output_dir}", flush=True)
 
     while simulation_app.is_running():
         with torch.inference_mode():
@@ -81,9 +113,14 @@ def main():
             if step_count % reset_interval == 0:
                 print(f"[INFO] Triggering environment reset (step {step_count})...", flush=True)
                 env.reset()
+                reset_count += 1
             
             # Step the simulation forward (with empty actions)
             env.step(action=torch.empty(env.num_envs, 0, device=env.device))
+            
+            # Save top-down camera images on the step following each reset
+            if args_cli.save_camera and step_count % reset_interval == 0:
+                _save_camera_images(env, reset_count, camera_output_dir)
             
             step_count += 1
             if args_cli.max_steps > 0 and step_count >= args_cli.max_steps:

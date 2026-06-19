@@ -7,10 +7,11 @@ from __future__ import annotations
 
 from isaaclab.assets import AssetBaseCfg, RigidObjectCfg
 from isaaclab.scene import InteractiveSceneCfg
+from isaaclab.sensors import CameraCfg
 from isaaclab.utils import configclass
 import isaaclab.sim as sim_utils
 
-from .constants import CHAIR_BBOX, DESK_BBOX, FLOOR_Z, ROBOT_BBOX, WALL_PROP_META
+from .constants import CHAIR_BBOX, DESK_BBOX, DESK_OBJECT_Z, FLOOR_Z, ROBOT_BBOX, TABLE_PROP_META, WALL_PROP_META
 
 
 # ------------------------------------------------------------------
@@ -48,6 +49,24 @@ def _proxy_box_cfg(half_w: float, half_d: float, height: float = 0.08) -> sim_ut
         ),
         collision_props=sim_utils.CollisionPropertiesCfg(),
         visible=False,
+    )
+
+
+def _desk_object_cfg(
+    half_w: float, half_d: float, height: float = 0.06,
+    color: tuple = (0.8, 0.2, 0.2),
+) -> sim_utils.CuboidCfg:
+    """Small visible proxy cuboid for tabletop objects."""
+    return sim_utils.CuboidCfg(
+        size=(2.0 * half_w, 2.0 * half_d, height),
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            rigid_body_enabled=True,
+            disable_gravity=True,
+            linear_damping=10.0,
+            angular_damping=10.0,
+        ),
+        collision_props=sim_utils.CollisionPropertiesCfg(),
+        visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=color),
     )
 
 
@@ -166,16 +185,59 @@ class RoomSceneCfg(InteractiveSceneCfg):
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-2.89, -6.35, FLOOR_Z)),
     )
 
+    # --- tabletop objects (visible proxies on desk surface) ------------
+
+    coffee_cup = RigidObjectCfg(
+        prim_path="{ENV_REGEX_NS}/coffee_cup_proxy",
+        spawn=_desk_object_cfg(
+            TABLE_PROP_META["coffee_cup"].bbox.half_w,
+            TABLE_PROP_META["coffee_cup"].bbox.half_d,
+            height=0.10,
+            color=(0.55, 0.27, 0.07),  # brown
+        ),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -7.5, DESK_OBJECT_Z)),
+    )
+
+    desk_lamp = RigidObjectCfg(
+        prim_path="{ENV_REGEX_NS}/desk_lamp_proxy",
+        spawn=_desk_object_cfg(
+            TABLE_PROP_META["desk_lamp"].bbox.half_w,
+            TABLE_PROP_META["desk_lamp"].bbox.half_d,
+            height=0.25,
+            color=(0.85, 0.75, 0.20),  # gold
+        ),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.2, -7.3, DESK_OBJECT_Z)),
+    )
+
+    box_portable = RigidObjectCfg(
+        prim_path="{ENV_REGEX_NS}/box_portable_proxy",
+        spawn=_desk_object_cfg(
+            TABLE_PROP_META["box_portable"].bbox.half_w,
+            TABLE_PROP_META["box_portable"].bbox.half_d,
+            height=0.08,
+            color=(0.30, 0.50, 0.70),  # steel blue
+        ),
+        init_state=RigidObjectCfg.InitialStateCfg(pos=(-6.8, -7.7, DESK_OBJECT_Z)),
+    )
+
     # --- cameras ------------------------------------------------------
 
-    top_down_camera = AssetBaseCfg(
+    top_down_camera = CameraCfg(
         prim_path="{ENV_REGEX_NS}/TopDownCamera",
+        update_period=0.0,
+        height=720,
+        width=1280,
+        data_types=["rgb"],
         spawn=sim_utils.PinholeCameraCfg(
-            focal_length=24.0, focus_distance=400.0, horizontal_aperture=20.955, clipping_range=(0.1, 1.0e5)
+            focal_length=24.0,
+            focus_distance=400.0,
+            horizontal_aperture=20.955,
+            clipping_range=(0.1, 1.0e5),
         ),
-        init_state=AssetBaseCfg.InitialStateCfg(
+        offset=CameraCfg.OffsetCfg(
             pos=(-7.1, -8.6, 14.8),
-            rot=(0.7071068, 0.0, 0.7071068, 0.0) # Look down
+            rot=(0.7071068, 0.0, 0.7071068, 0.0),  # look down
+            convention="world",
         ),
     )
 

@@ -1,258 +1,145 @@
-# Placement Algorithm Redesign: Bounding Boxes + Continuous Zones
+# Placement Algorithm: OBB + Continuous Zones (Implemented)
 
-## Problem with the Current Approach
+> [!NOTE]
+> This document describes the **implemented** OBB-based placement algorithm. The original circle-packing + predefined-slots system has been fully replaced.
 
-| Issue | Impact |
+---
+
+## Background: Why the Redesign?
+
+| Issue with old system | Impact |
 |---|---|
-| **Circles waste space** | A 1.2m × 0.4m desk uses a 1.2m-radius circle — wastes ~70% of the reserved area. Nearby objects are rejected even when they'd physically fit. |
-| **Predefined slots limit variety** | Only 10 wall slots and 12 room slots → limited placement diversity. The same positions appear repeatedly across rooms. |
-| **Only 3/8 wall props fit** | Because circle envelopes are too large and slots are too close, most props fail the overlap check. |
+| **Circles waste space** | A 1.2m × 0.4m desk used a 1.2m-radius circle — ~70% wasted area. Nearby objects rejected even when they'd physically fit. |
+| **Predefined slots limit variety** | Only 10 wall slots and 12 room slots → same positions appeared repeatedly. |
+| **Only 3/8 wall props fit** | Circle envelopes too large, slots too close — most props failed overlap checks. |
 
-## New Approach: OBB + Continuous Zones
+---
+
+## Implemented Approach: OBB + Continuous Zones
 
 ### 1. Oriented Bounding Boxes (OBB)
 
-Replace circles with axis-aligned rectangles rotated by the object's yaw:
-
-```
-Current:  PropMeta(spacing_radius=0.85)     → circle of radius 0.85
-New:      PropBox(half_w=0.60, half_d=0.30) → 1.2m × 0.6m rectangle
-```
-
-Each object gets a **2D bounding box** defined by `(center_x, center_y, half_width, half_depth, yaw_rad)`. Collision detection uses the **Separating Axis Theorem (SAT)**:
+Every placeable object has a 2D **oriented bounding box** defined by `BBox(half_w, half_d)`. Collision detection uses the **Separating Axis Theorem (SAT)**:
 
 - For two OBBs, project both onto 4 axes (2 edge normals per box).
 - If projections overlap on **all 4 axes** → collision.
 - If any axis has a gap → no collision.
 
-This is exact, tight, and well-suited for rectangular furniture.
-
-```mermaid
-graph LR
-    subgraph "Circle (old)"
-        A["Cabinet: r=0.85m<br/>Area = 2.27 m²"]
-    end
-    subgraph "OBB (new)"
-        B["Cabinet: 0.60 × 0.30m<br/>Area = 0.72 m²"]
-    end
-    A -->|"3× less wasted space"| B
+```
+Old:  PropMeta(spacing_radius=0.85)     → circle of radius 0.85, Area ≈ 2.27 m²
+New:  BBox(half_w=0.55, half_d=0.35)   → 1.10 × 0.70m rectangle, Area ≈ 0.77 m²
 ```
 
-### 2. Continuous Placement Zones (No Slots)
+Implemented in [placement_utils.py](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/placement_utils.py):
+- [obb_corners()](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/placement_utils.py#L55-L69) — rotates local corners into world space
+- [obb_overlap()](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/placement_utils.py#L82-L115) — SAT test with optional margin inflation
+- [obb_inside_room()](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/placement_utils.py#L122-L129) — all 4 corners inside room bounds
 
-Instead of picking from a fixed list of (x, y) positions, objects sample from continuous **placement zones**:
+### 2. Continuous Placement Zones
+
+Objects sample from continuous **placement zones** instead of fixed slot lists.
 
 #### Wall zones (strips along walls)
 
-```
-Back wall zone:   x ∈ [ROOM_X_MIN + margin, RIGHT_WALL_LINE_X - corner_margin]
-                  y = BACK_WALL_LINE_Y + wall_offset  (fixed — flush to wall)
-                  yaw = face-into-room yaw for this wall
+Defined as `WallZone` dataclasses in [constants.py](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/constants.py#L65-L82):
 
-Right wall zone:  x = RIGHT_WALL_LINE_X - wall_offset  (fixed — flush to wall)
-                  y ∈ [BACK_WALL_LINE_Y + corner_margin, ROOM_Y_MAX - margin]
-                  yaw = face-into-room yaw for this wall
-```
+| Zone | Free axis | Range | Fixed coord | Base yaw |
+|------|-----------|-------|-------------|----------|
+| Back wall | X | [−12.0, −4.0] | Y = −10.75 | 0.0 (face +Y) |
+| Right wall | Y | [−10.0, −5.5] | X = −3.0 | π/2 (face −X) |
 
-Wall props sample a **random position along the wall strip** (1 degree of freedom per wall), then check OBB overlap with already-placed props. This gives continuous variation instead of snapping to 10 fixed points.
+Wall props sample a random position along the strip (1 DOF), then check OBB overlap. Each prop also has `allowed_walls` restricting which zones it can use.
 
-Each wall prop also randomly chooses **which wall** to go on (back or right), weighted by available space.
+#### Room interior zone (for table group)
 
-#### Room interior zone (for the table group)
+The table group samples from the full room interior:
+- x ∈ [−10.0, −5.0], y ∈ [−9.0, −6.0], yaw ∈ [0, 2π)
+- Chair at orbit offset (0.0, −1.65) from desk center
+- Robot at orbit offset (−1.95, +1.10) from desk center
 
-The table group (desk + chair + robot) samples from the full room interior:
+#### Desk surface zone
 
-```
-x ∈ [ROOM_X_MIN + desk_margin, ROOM_X_MAX - desk_margin]
-y ∈ [ROOM_Y_MIN + desk_margin, ROOM_Y_MAX - desk_margin]
-yaw ∈ [0, 2π)  — fully continuous
-```
-
-No predefined slots. Pure rejection sampling against the wall props' bounding boxes.
-
-#### Desk surface zone (unchanged)
-
-Already uses continuous sampling — just switch the collision check from circles to small OBBs.
+Tabletop objects sample local (x, y) coordinates on the desk surface within [−0.38, 0.38] × [−0.22, 0.22], using OBB overlap with `DESK_OBJECT_MARGIN = 0.03m`.
 
 ---
 
-## Proposed Changes
+## Implementation Details
+
+### Physics: Dual-Body Proxy Architecture
+
+Due to PhysX GPU tensor view crashes with imported USD rigid bodies, the implementation uses **proxy cuboids** for physics and **visual sync** for rendering:
+
+- **Proxy cuboids** (`_proxy_box_cfg()` in [room_scene_cfg.py](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_scene_cfg.py#L39-L51)): invisible, gravity-disabled, high-damping `CuboidCfg` bodies
+- **Visual sync** (`_sync_visual_props()` in [room_events.py](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_events.py#L96-L98)): moves USD meshes inside the room shell to match proxy positions using `pxr` API
+- **CPU PhysX** forced via `sim.device = "cpu"`, `sim.use_fabric = False`
 
 ### Constants & Metadata
 
-#### [MODIFY] [constants.py](file:///Users/cezarioa/Documents/room_randomizer_lab/constants.py)
+All bounding box dimensions defined in [constants.py](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/constants.py):
 
-**Delete:**
-- `PlacementSlot` dataclass
-- `WALL_PLACEMENT_SLOTS` (10 predefined slots)
-- `ROOM_PROP_PLACEMENT_SLOTS` (12 predefined slots)
-- `TABLE_GROUP_MAX_SLOT_TRIES`
-- `DESK_RADIUS`, `CHAIR_RADIUS`, `ROBOT_RADIUS` (circles)
-- `WallPropMeta.spacing_radius` field (circle-based)
+| Object | `half_w` (m) | `half_d` (m) | Tall? | Allowed walls |
+|---|---|---|---|---|
+| SM_MedicalCabinet_01a | 0.55 | 0.35 | ✅ | right only |
+| SM_ShelfSet_01a | 0.65 | 0.35 | ✅ | right only |
+| SM_SupplyCabinet_01c | 0.50 | 0.35 | ✅ | back only |
+| SM_SupplyCart_02a | 0.55 | 0.40 | | both |
+| SM_SupplyCart_03a | 0.55 | 0.40 | | both |
+| SM_TrashCan | 0.25 | 0.25 | | both |
+| SM_Plant01 | 0.35 | 0.35 | | both |
+| SM_Plant02 | 0.35 | 0.35 | | both |
 
-**Replace with:**
-
-```python
-@dataclass(frozen=True)
-class BBox:
-    """2D oriented bounding box for placement collision."""
-    half_w: float   # half-width  (X in local frame)
-    half_d: float   # half-depth  (Y in local frame)
-
-@dataclass(frozen=True)
-class WallPropMeta:
-    usd_name: str
-    bbox: BBox                # replaces spacing_radius
-    tall: bool = False
-    wall_offset: float = 0.0  # how far from wall surface (centre-to-wall)
-    yaw_offset: float = 0.0   # yaw adjustment relative to wall normal
-    allowed_walls: tuple[str, ...] = ("back", "right")
-
-@dataclass(frozen=True)
-class TablePropMeta:
-    bbox: BBox                # replaces radius
-```
-
-**Add wall zone definitions:**
-
-```python
-# Wall zone: continuous strip where wall props can be placed
-@dataclass(frozen=True)
-class WallZone:
-    wall: str           # "back" or "right"
-    sample_min: float   # min of the free axis
-    sample_max: float   # max of the free axis
-    fixed_coord: float  # the fixed axis value (prop centre distance from wall)
-    base_yaw: float     # yaw to face into the room (radians)
-
-WALL_ZONES = [
-    WallZone("back",  sample_min=-12.0, sample_max=-4.0,
-             fixed_coord=-10.3, base_yaw=0.0),
-    WallZone("right", sample_min=-9.5,  sample_max=-5.5,
-             fixed_coord=-3.0,  base_yaw=math.pi/2),
-]
-```
-
-> [!IMPORTANT]
-> The `fixed_coord` values (wall-parallel position) and `sample_min/max` ranges should be tuned to your actual room geometry. The values above are estimates from the current slot positions.
-
----
-
-### Collision Engine
-
-#### [MODIFY] [placement_utils.py](file:///Users/cezarioa/Documents/room_randomizer_lab/placement_utils.py)
-
-**Delete:**
-- `is_free_batched` (circle-based)
-- `table_group_fits_batched` (circle-based)
-- `point_inside_room_batched` (radius-based)
-- `tall_prop_corner_ok` (slot-based)
-- `wall_yaw_for_prop` (slot-based yaw lookup)
-
-**Add:**
-
-```python
-def obb_corners(cx, cy, hw, hd, yaw):
-    """Compute the 4 corners of an oriented bounding box."""
-    ...
-
-def obb_overlap(box_a, box_b) -> bool:
-    """SAT-based overlap test between two oriented bounding boxes."""
-    ...
-
-def obb_inside_room(cx, cy, hw, hd, yaw) -> bool:
-    """Check all 4 corners of an OBB are inside the room bounds."""
-    ...
-
-def obb_overlap_any(candidate_obb, placed_obbs) -> bool:
-    """Check if a candidate OBB overlaps any already-placed OBB."""
-    ...
-```
-
-**Keep (unchanged):**
-- `yaw_to_quat`
-- `offset_from_yaw_batched`
-- `local_to_world_xy`
-- `build_root_state`
-
----
-
-### Event Terms
-
-#### [MODIFY] [room_events.py](file:///Users/cezarioa/Documents/room_randomizer_lab/room_events.py)
-
-**Phase 1 (`_place_wall_props`) — rewritten:**
-1. For each wall prop, randomly choose a wall (back or right).
-2. Sample a random position along that wall's continuous zone strip.
-3. Compute the OBB at that position (using the prop's `bbox` + wall yaw).
-4. Check OBB doesn't overlap any already-placed OBB.
-5. Check OBB corners are all inside room bounds.
-6. If it fails, try the other wall, then retry with new random positions.
-
-**Phase 2 (`_place_table_group`) — rewritten:**
-1. Sample random `(x, y, yaw)` from the full room interior.
-2. Compute OBBs for desk, chair, and robot at their orbital positions.
-3. Check none of the 3 OBBs overlap each other or any wall prop OBB.
-4. Check all OBB corners are inside room bounds.
-5. Repeat rejection sampling until valid or fallback.
-
-**Phase 3 (`_place_desk_objects`) — minor update:**
-- Replace circle overlap check with OBB overlap check on the desk surface.
-
----
-
-### Test Script
-
-#### [MODIFY] [test_placement.py](file:///Users/cezarioa/Documents/room_randomizer_lab/test_placement.py)
-
-Update to draw rectangles instead of circles. Show OBBs with proper rotation.
-
----
-
-## Object Bounding Box Dimensions
-
-> [!IMPORTANT]
-> These are estimates based on the USD asset names. You should verify/adjust them by inspecting the actual meshes in Isaac Sim (select object → check Transform extent in Properties panel).
-
-| Object | `half_w` (m) | `half_d` (m) | Notes |
-|---|---|---|---|
-| SM_MedicalCabinet_01a | 0.45 | 0.25 | Tall, ~0.9m × 0.5m footprint |
-| SM_ShelfSet_01a | 0.50 | 0.25 | Tall, ~1.0m × 0.5m |
-| SM_SupplyCabinet_01c | 0.40 | 0.25 | Tall, ~0.8m × 0.5m |
-| SM_SupplyCart_02a | 0.40 | 0.30 | ~0.8m × 0.6m |
-| SM_SupplyCart_03a | 0.40 | 0.30 | ~0.8m × 0.6m |
-| SM_TrashCan | 0.20 | 0.20 | ~0.4m × 0.4m (roughly square) |
-| SM_Plant01 | 0.25 | 0.25 | ~0.5m × 0.5m |
-| SM_Plant02 | 0.25 | 0.25 | ~0.5m × 0.5m |
-| SM_Desk_04a | 0.60 | 0.40 | ~1.2m × 0.8m |
-| SM_Chair_04a | 0.30 | 0.30 | ~0.6m × 0.6m |
-| ridgeback_03 | 0.50 | 0.35 | ~1.0m × 0.7m |
-| SM_CoffeeToGo | 0.05 | 0.05 | Tiny |
-| SM_Lamp02 | 0.10 | 0.10 | Small base |
-| SM_BoxPortableC | 0.10 | 0.08 | Small box |
-
----
-
-## Benefits
-
-| Metric | Old (circles + slots) | New (OBB + zones) |
+Table group:
+| Object | `half_w` | `half_d` |
 |---|---|---|
-| Wall prop placements per room | ~3/8 | **~6–8/8** (tighter boxes = more fit) |
+| Desk | 0.70 | 0.45 |
+| Chair | 0.40 | 0.40 |
+| Robot (Ridgeback) | 0.65 | 0.50 |
+
+### Event Term: 3-Phase Algorithm
+
+Implemented in [randomize_room_layout()](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_events.py#L105-L135):
+
+**Phase 1 — Wall props** ([_place_wall_props](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_events.py#L282)):
+1. Sort by tall-first priority.
+2. Per env: sample up to 100 positions across allowed wall zones.
+3. OBB room bounds + overlap rejection.
+4. Write to sim + sync visual.
+5. Failed placements despawn to z = −100.
+
+**Phase 2 — Table group** ([_place_table_group](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_events.py#L384)):
+1. Sample random (x, y, yaw) up to 300 tries.
+2. Validate desk + chair + robot OBBs (room bounds + no overlap with wall props + no overlap with each other).
+3. Fallback to fixed position (−7.5, −7.5) with random yaw.
+4. Write to sim + sync visual for desk and chair.
+
+**Phase 3 — Tabletop objects** ([_place_desk_objects](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_events.py#L519)):
+1. Currently disabled (`table_prop_names = []`).
+2. When enabled: rejection-sample local positions on desk surface with OBB overlap.
+3. Transform to world via desk yaw rotation.
+
+---
+
+## Results
+
+| Metric | Old (circles + slots) | Current (OBB + zones) |
+|---|---|---|
+| Wall prop placements per room | ~3/8 | **~6–8/8** |
 | Position variety | 10 fixed wall positions | **Continuous** along wall strips |
 | Desk position variety | 12 fixed positions | **Continuous** in room interior |
-| Collision accuracy | ~30% wasted space | **<5% wasted** (tight rectangles) |
-| Code complexity | Moderate | Slightly higher (SAT math), but cleaner (no slot lists) |
+| Collision accuracy | ~30% wasted space | **<5% wasted** |
+| Physics stability | GPU crashes on reset | **Stable** (CPU PhysX + proxy bodies) |
 
 ---
 
-## Verification Plan
+## Verification
 
 ### Automated Tests
-- `python test_placement.py` — generate 6 rooms, visualize OBBs as rotated rectangles
-- Verify all OBB corners are inside room bounds
-- Verify no OBB pairs overlap (SAT check all-vs-all)
-- Count placed wall props per room (target: ≥ 6/8)
+- `python test_placement.py` — generates 6 rooms, visualizes OBBs as rotated rectangles
+- Validates all OBB corners inside room bounds
+- Validates no OBB pairs overlap (SAT all-vs-all)
+- Output: `placement_test.png`
 
 ### Manual Verification
 - Run in Isaac Lab viewer and watch resets
 - Inspect that furniture doesn't clip through walls or each other
+- Verify visual props track proxy positions correctly

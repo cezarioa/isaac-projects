@@ -1,301 +1,151 @@
-# Transition Guide: `nbr_gen.py` → Isaac Lab `ManagerBasedEnv`
+# Transition Reference: `nbr_gen.py` → Isaac Lab `ManagerBasedEnv`
 
 > [!NOTE]
-> This document maps every element of the current procedural script to the Isaac Lab declarative pattern. Read it as a "before/after" reference, not an implementation plan.
+> This document records the architectural decisions and mappings from the original procedural `nbr_gen.py` script to the current Isaac Lab implementation. The migration is **complete** — this serves as a reference for understanding the final design.
 
 ---
 
-## 1. The Fundamental Architecture Shift
+## 1. Architecture Summary
 
-Your current script and the Isaac Lab example solve the same problem — "create N environments with randomized object placement" — but with opposite control flow:
+The original `nbr_gen.py` created rooms procedurally by directly manipulating USD prims. The Isaac Lab version uses a declarative configuration + event-driven reset pattern.
 
-| Aspect | Current `nbr_gen.py` | Isaac Lab `ManagerBasedEnv` |
+| Aspect | Original `nbr_gen.py` | Current Isaac Lab |
 |---|---|---|
-| **Scene creation** | Imperative: `define_xform()`, `add_payload_prim()`, `set_xform()` | Declarative: `@configclass` with typed asset configs |
-| **Environment cloning** | Manual: grid loop with `ROOM_SPACING_X/Y`, internal USD references | Automatic: `num_envs=N`, `env_spacing=3.0`, `{ENV_REGEX_NS}` path token |
-| **Randomization timing** | Once at build: baked into USD transforms | Every reset: event term function re-runs, writes new state to sim |
-| **Math backend** | Python `random` + scalar math, sequential | `torch` tensors, **all envs in parallel** |
-| **State representation** | USD xformOps (translate + rotateXYZ + scale) | Root state tensor: `(N, 13)` = pos(3) + quat(4) + lin_vel(3) + ang_vel(3) |
-| **Coordinate frame** | World-space with manual room offsets | Local-space; `env.scene.env_origins` provides per-env offsets |
-| **USD interaction** | Direct: `pxr` API, `omni.usd` | Abstracted: Isaac Lab manages USD lifecycle internally |
-
-```mermaid
-flowchart LR
-    subgraph "Current nbr_gen.py"
-        A["generate_rooms()"] --> B["for i in range(N)"]
-        B --> C["create_room_instance()"]
-        C --> D["clone template"]
-        C --> E["hide original props"]
-        C --> F["place wall props"]
-        C --> G["place table group"]
-        C --> H["place desk objects"]
-    end
-    subgraph "Isaac Lab Pattern"
-        I["@configclass SceneCfg"] --> J["ManagerBasedEnv auto-clones"]
-        K["EventTerm: mode='reset'"] --> L["randomize_layout(env, env_ids)"]
-        L --> M["write_root_state_to_sim()"]
-    end
-```
+| **Scene creation** | Imperative: `define_xform()`, `add_payload_prim()`, `set_xform()` | Declarative: `@configclass RoomSceneCfg` with `RigidObjectCfg` fields |
+| **Environment cloning** | Manual grid loop with `ROOM_SPACING_X/Y` | Automatic: `num_envs=20`, `env_spacing=16.0` |
+| **Randomization timing** | Once at build (baked into USD) | Every reset via event term |
+| **Collision detection** | Circle-packing + predefined slots | OBB + SAT + continuous zone sampling |
+| **Math backend** | Python `random` + scalar math | Hybrid: Python `random` for sampling, `torch` for state writes |
+| **State representation** | USD xformOps | Root state tensors: `(N, 13)` = pos + quat + velocities |
+| **Physics bodies** | Static USD meshes | **Proxy cuboids** (invisible) + visual sync |
+| **Physics device** | N/A (no simulation) | CPU PhysX, Fabric disabled |
 
 ---
 
-## 2. Component-by-Component Mapping
+## 2. What Got Deleted
 
-### 2.1 Scene Definition
+All of these elements from `nbr_gen.py` were replaced by Isaac Lab's built-in mechanisms:
 
-**Current:** The room structure comes from an existing `/World/Environment` USD prim that's cloned via internal references. Props are loaded with `add_payload_prim()` from S3 URLs.
+- `define_xform()`, `add_payload_prim()`, `set_xform()`, `add_internal_reference_prim()`, `add_internal_reference_xform()` — replaced by `RigidObjectCfg` declarations
+- Grid layout loop (`create_room_instance()`, `ROOM_SPACING_X/Y`, `GENERATED_START_OFFSET`) — replaced by `num_envs` + `env_spacing`
+- `hide_*` functions — replaced by `z = -100` despawning pattern
+- `build_ui()` / `main()` — replaced by Isaac Lab's `AppLauncher`
+- `PlacementSlot` and predefined slot lists — replaced by continuous `WallZone` sampling
+- Circle-packing collision (`is_free()`, spacing_radius) — replaced by OBB + SAT
 
-**Isaac Lab:** Each object is a named field in an `InteractiveSceneCfg` dataclass. The room itself becomes a `UsdFileCfg` asset, and each prop is its own `RigidObjectCfg`.
+---
 
-```python
-# CURRENT (imperative)
-add_payload_prim(
-    f"{props_root}/wall_props/SM_MedicalCabinet_01a",
-    "https://...SM_MedicalCabinet_01a.usd",
-    translate=(-3.0, -10.0, 0.0),
-    yaw_deg=90.0,
-)
+## 3. Component Mapping (Final)
 
-# ISAAC LAB (declarative)
-@configclass
-class RoomSceneCfg(InteractiveSceneCfg):
-    medical_cabinet = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/WallProps/SM_MedicalCabinet_01a",
-        spawn=sim_utils.UsdFileCfg(
-            usd_path="https://...SM_MedicalCabinet_01a.usd",
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
-        ),
-        init_state=RigidObjectCfg.InitialStateCfg(pos=(-3.0, -10.0, 0.0)),
-    )
-```
+### 3.1 Scene Definition
+
+Each randomizable object is a named field in [RoomSceneCfg](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_scene_cfg.py#L59-L182):
+
+| Original `nbr_gen.py` Object | Scene Cfg Field | Asset Type | Prim Path |
+|---|---|---|---|
+| Room structure (`/World/Environment`) | `room_shell` | `AssetBaseCfg` + `UsdFileCfg` | `{ENV}/RoomShell` |
+| Ground/lights | `ground`, `dome_light` | `AssetBaseCfg` | `/World/ground`, `/World/light` |
+| SM_Desk_04a | `desk` | `RigidObjectCfg` + proxy cuboid | `{ENV}/desk_proxy` |
+| SM_Chair_04a | `chair` | `RigidObjectCfg` + proxy cuboid | `{ENV}/chair_proxy` |
+| ridgeback_03 | `ridgeback` | `RigidObjectCfg` + visible cuboid | `{ENV}/RidgebackProxy` |
+| SM_MedicalCabinet_01a | `medical_cabinet` | `RigidObjectCfg` + proxy cuboid | `{ENV}/medical_cabinet_proxy` |
+| SM_ShelfSet_01a | `shelf_set` | `RigidObjectCfg` + proxy cuboid | `{ENV}/shelf_set_proxy` |
+| SM_SupplyCabinet_01c | `supply_cabinet` | `RigidObjectCfg` + proxy cuboid | `{ENV}/supply_cabinet_proxy` |
+| SM_SupplyCart_02a | `supply_cart_a` | `RigidObjectCfg` + proxy cuboid | `{ENV}/supply_cart_a_proxy` |
+| SM_SupplyCart_03a | `supply_cart_b` | `RigidObjectCfg` + proxy cuboid | `{ENV}/supply_cart_b_proxy` |
+| SM_TrashCan | `trash_can` | `RigidObjectCfg` + proxy cuboid | `{ENV}/trash_can_proxy` |
+| SM_Plant01 | `plant_a` | `RigidObjectCfg` + proxy cuboid | `{ENV}/plant_a_proxy` |
+| SM_Plant02 | `plant_b` | `RigidObjectCfg` + proxy cuboid | `{ENV}/plant_b_proxy` |
+| Top-down camera | `top_down_camera` | `AssetBaseCfg` + `PinholeCameraCfg` | `{ENV}/TopDownCamera` |
 
 > [!IMPORTANT]
-> **Key decision:** Each prop that needs independent randomization must be a **separate named field** in the scene config. You can't just loop and `add_payload_prim` dynamically — the scene structure is fixed at config time.
+> Tabletop objects (SM_CoffeeToGo, SM_Lamp02, SM_BoxPortableC) are **not currently in the scene config**. They were removed during the proxy migration. Their metadata still exists in `constants.py` for future re-enablement.
 
-**What this means for your 8 wall props + 3 table objects + desk + chair + robot:**
-
-| Current Object | Scene Cfg Field | Asset Type |
-|---|---|---|
-| Room structure (`/World/Environment`) | `room_structure` | `AssetBaseCfg` with `UsdFileCfg` (static) |
-| Ground/lights | `ground`, `light` | `AssetBaseCfg` with `GroundPlaneCfg` / `DomeLightCfg` |
-| SM_Desk_04a | `desk` | `RigidObjectCfg` (kinematic) |
-| SM_Chair_04a | `chair` | `RigidObjectCfg` (kinematic) |
-| ridgeback_03 | `ridgeback` | `RigidObjectCfg` (kinematic) |
-| SM_MedicalCabinet_01a | `medical_cabinet` | `RigidObjectCfg` (kinematic) |
-| SM_ShelfSet_01a | `shelf_set` | `RigidObjectCfg` (kinematic) |
-| SM_SupplyCabinet_01c | `supply_cabinet` | `RigidObjectCfg` (kinematic) |
-| SM_SupplyCart_02a | `supply_cart_a` | `RigidObjectCfg` (kinematic) |
-| SM_SupplyCart_03a | `supply_cart_b` | `RigidObjectCfg` (kinematic) |
-| SM_TrashCan | `trash_can` | `RigidObjectCfg` (kinematic) |
-| SM_Plant01 | `plant_a` | `RigidObjectCfg` (kinematic) |
-| SM_Plant02 | `plant_b` | `RigidObjectCfg` (kinematic) |
-| SM_CoffeeToGo | `coffee_cup` | `RigidObjectCfg` (dynamic) |
-| SM_Lamp02 | `desk_lamp` | `RigidObjectCfg` (dynamic) |
-| SM_BoxPortableC | `box_portable` | `RigidObjectCfg` (dynamic) |
-
-That's **~16 named fields** in `RoomSceneCfg`, each with a unique `{ENV_REGEX_NS}/...` path.
-
----
-
-### 2.2 Environment Cloning
-
-**Current:** You manually compute grid positions and clone the template:
+### 3.2 State Writing: `set_xform()` → `write_root_state_to_sim()`
 
 ```python
-# CURRENT
-for i in range(room_count):
-    grid_x = i % columns
-    grid_y = i // columns
-    create_room_instance(i + 1, grid_x, grid_y)
-```
-
-**Isaac Lab:** This entire mechanism is replaced by two numbers:
-
-```python
-scene = RoomSceneCfg(num_envs=20, env_spacing=16.0)
-```
-
-Isaac Lab automatically clones every asset defined in the scene config `num_envs` times, spaced in a grid. The `{ENV_REGEX_NS}` token in each `prim_path` gets replaced with `/World/envs/env_0`, `/World/envs/env_1`, etc.
-
-**What you delete:** `ROOM_SPACING_X/Y`, `GENERATED_START_OFFSET`, the entire grid loop in `generate_rooms()`, `create_room_instance()`, `define_xform()`, `add_internal_reference_prim()`, `add_internal_reference_xform()`, `set_xform()`, `add_payload_prim()`, all the `hide_*` functions. Essentially **the entire USD manipulation layer**.
-
----
-
-### 2.3 Randomization → Event Terms
-
-This is the core transformation. Your current randomization runs once during construction. In Isaac Lab, it runs as a function called on every episode reset.
-
-**Current flow in `create_room_instance()`:**
-1. Shuffle wall slots → place wall props (circle-packing)
-2. Choose table group position (rejection sampling) → place desk + chair + robot
-3. Place tabletop objects (rejection sampling on desk surface)
-
-**Isaac Lab equivalent:** One or more event term functions with the signature:
-
-```python
-def randomize_room_layout(
-    env: ManagerBasedEnv,
-    env_ids: torch.Tensor,     # which envs are resetting (could be a subset!)
-    wall_props: list[str],     # scene config field names
-    room_props: list[str],
-    table_props: list[str],
-    ...
-):
-```
-
-> [!IMPORTANT]
-> The biggest change: **all envs are randomized in parallel**, not sequentially. Your rejection-sampling loops must operate on tensors of shape `(num_envs, ...)`, with a `remaining` mask to track which envs still need a valid placement. See how the tray example does this with `remaining = torch.ones(num_envs, dtype=torch.bool)`.
-
-#### What carries over vs. what gets rewritten:
-
-| Current Logic | Keeps? | Notes |
-|---|---|---|
-| `PlacementSlot` data | ✅ Keep as constants | Slot positions, radii, wall tags — these become tensors |
-| `WALL_PROP_YAW_BY_WALL` | ✅ Keep as constants | Yaw lookup stays the same |
-| `PropSpec` | ⚠️ Partially | `spacing_radius`, `tall`, `radius` still useful. `asset_path` moves to the scene config. |
-| `is_free()` circle-packing | 🔄 Rewrite | Must become a batched `torch` function operating on `(N, 2)` tensors |
-| `choose_wall_slot()` | 🔄 Rewrite | Rejection sampling becomes parallel across envs |
-| `table_group_fits()` | 🔄 Rewrite | Same — batched version |
-| `offset_from_pose()` | 🔄 Rewrite | `torch.cos` / `torch.sin` instead of `math.cos` / `math.sin` |
-| `random_desk_object_pose()` | 🔄 Rewrite | `torch.rand` instead of `random.uniform` |
-| `wall_yaw_for_prop()` | ✅ Keep | Pure data lookup, doesn't need tensors |
-| All USD helpers (`define_xform`, etc.) | ❌ Delete | Isaac Lab handles all prim creation internally |
-| `build_ui()` / `main()` | ❌ Delete | Isaac Lab provides its own app runner |
-
----
-
-### 2.4 State Writing: `set_xform` → `write_root_state_to_sim`
-
-**Current:** You set transforms via USD xformOps:
-```python
+# ORIGINAL (imperative USD)
 set_xform(path, translate=(x, y, z), yaw_deg=90.0)
-```
 
-**Isaac Lab:** You write a `(N, 13)` tensor per asset:
-```python
-root_state = asset.data.default_root_state[env_ids].clone()
-root_state[:, 0] = x + env.scene.env_origins[env_ids, 0]  # world x
-root_state[:, 1] = y + env.scene.env_origins[env_ids, 1]  # world y
-root_state[:, 2] = z + env.scene.env_origins[env_ids, 2]  # world z
-# quaternion for yaw-only rotation:
-root_state[:, 3] = torch.cos(yaw_rad * 0.5)  # qw
-root_state[:, 4] = 0.0                         # qx
-root_state[:, 5] = 0.0                         # qy
-root_state[:, 6] = torch.sin(yaw_rad * 0.5)   # qz
-root_state[:, 7:] = 0.0                        # zero velocities
-
+# CURRENT (Isaac Lab tensor API)
+root_state = build_root_state(pos, yaw_rad, env_origins, env_ids, default_state)
 asset.write_root_state_to_sim(root_state, env_ids=env_ids)
 ```
 
-> [!WARNING]
-> **Euler → Quaternion:** Your current code uses `yaw_deg` everywhere. Isaac Lab uses quaternions `(qw, qx, qy, qz)`. For Z-up yaw-only rotations, the conversion is simple (see above), but be careful if you ever add pitch/roll.
+The [build_root_state()](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/placement_utils.py#L232-L251) helper:
+1. Clones the asset's default state for the given env IDs.
+2. Adds `env_origins` offsets to positions (local → world).
+3. Converts yaw to `(w, x, y, z)` quaternion via [yaw_to_quat()](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/placement_utils.py#L148-L161).
+4. Zeroes velocities.
 
-> [!WARNING]
-> **`env_origins` offset:** Every coordinate you write must be in **world space**, which means adding `env.scene.env_origins[env_ids]`. The tray example shows this pattern on every axis. Your current code uses "local to the room" coordinates — you'll need to add the env origin offset.
+### 3.3 Visual Sync (New — No Equivalent in nbr_gen.py)
 
----
-
-### 2.5 Coordinate System Translation
-
-**Current:** All coordinates are in the template room's local frame (negative x, negative y):
-```
-ROOM_X_MIN = -13.0, ROOM_X_MAX = -1.0
-ROOM_Y_MIN = -11.0, ROOM_Y_MAX = -5.0
-```
-
-**Isaac Lab:** Environments are centered at their `env_origin`, so you'd typically re-center. You have two choices:
-
-1. **Re-center coordinates to (0, 0):** Shift all slot positions, room bounds, etc. by the room center (~(-7, -8)). This is cleaner but requires updating every constant.
-
-2. **Keep original coordinates, add env_origin:** Add `env.scene.env_origins` at write time, same as the tray example. Less work upfront but means your "local" coordinates are offset from (0,0).
-
----
-
-### 2.6 Dynamic Object Count Problem
-
-Your current script varies **how many** wall props appear and **which** tabletop objects appear per room. In Isaac Lab, the scene structure is fixed — every env has the same prims.
-
-**Solution:** Spawn all possible objects in the scene config, but "hide" unwanted ones per-env by teleporting them far below the floor:
+Because physics proxies are invisible cuboids, the visual furniture meshes inside the room shell must be moved manually:
 
 ```python
-# "Despawn" an object by moving it underground
-root_state[:, 2] = -100.0  # far below ground
-asset.write_root_state_to_sim(root_state, env_ids=env_ids)
+# After writing proxy state to sim:
+_sync_visual_props(env, env_ids, "desk", desk_positions, desk_yaws)
 ```
 
-This is the standard Isaac Lab pattern for variable object counts.
+This calls [_set_visual_prop_pose()](file:///Users/cezarioa/Projects/isaac-projects/room_randomizer_lab/room_events.py#L69-L93) which:
+1. Looks up the visual prim path via `_VISUAL_PROP_REL_PATHS` (e.g., `"desk"` → `"RoomShell/Environment/props/room_props/SM_Desk_04a"`)
+2. Sets `xformOp:translate` and `xformOp:rotateZYX` via `pxr` API
+3. Handles `float3` vs `double3` attribute type differences
+
+### 3.4 Coordinate System
+
+The original room coordinates were kept as-is (no re-centering):
+
+```
+Room bounds: x ∈ [-13.0, -2.5],  y ∈ [-11.25, -5.0]
+Floor: z = 0.0
+```
+
+All placement math operates in room-local coordinates. The `env_origins` offset is applied only at the final `build_root_state()` call.
+
+### 3.5 Dynamic Object Count
+
+The "despawn underground" pattern from `nbr_gen.py` was carried over:
+
+```python
+# Hide an object by moving it far below ground
+pos[:, 2] = -100.0  # DESPAWN_Z
+asset.write_root_state_to_sim(state, env_ids=env_ids)
+```
+
+All environments have the same set of prims. Objects that shouldn't appear in a particular env are teleported to `z = -100`.
 
 ---
 
-## 3. Resulting File Structure
+## 4. Resolved Design Questions
 
-```
-project/
-├── room_scene_cfg.py        # @configclass RoomSceneCfg(InteractiveSceneCfg)
-│                             #   ~16 asset fields
-│
-├── room_events.py            # Event term functions:
-│   ├── randomize_wall_props()     # batched wall-slot assignment
-│   ├── randomize_table_group()    # batched desk+chair+robot placement
-│   └── randomize_desk_objects()   # batched tabletop placement
-│
-├── room_env_cfg.py           # @configclass RoomEnvCfg(ManagerBasedEnvCfg)
-│                             #   scene, events, observations, actions
-│
-├── placement_utils.py        # Reusable, tensorized:
-│   ├── is_free_batched()          # (N, 2) circle packing
-│   ├── offset_from_pose_batched() # (N,) yaw + local offset → world
-│   └── euler_to_quat_z()         # yaw_rad → (qw, qx, qy, qz)
-│
-└── constants.py              # Slot positions, yaw tables, radii
-                              #   (carried over from nbr_gen.py)
-```
+These were open questions during the migration, now resolved:
+
+| Question | Resolution |
+|---|---|
+| **Room shell loading strategy?** | Load the full `new_base_room.usda` as a single `AssetBaseCfg`. All imported rigid body APIs were **stripped** from the USD. Visual props remain as static meshes, synced to proxy positions at reset. |
+| **Kinematic vs. dynamic objects?** | All objects use `rigid_body_enabled=True` with `disable_gravity=True` and high damping (effectively kinematic but GPU-tensor-compatible). No objects are `kinematic_enabled=True`. |
+| **USD asset hosting?** | The room USD is loaded from a local path. Individual prop assets are no longer loaded separately — they're embedded in the room shell USD. |
+| **RL or data generation?** | Currently configured as a `ManagerBasedEnv` for future RL training. Still has dummy action/observation managers. |
+| **CPU vs GPU PhysX?** | **CPU PhysX** forced due to GPU tensor view crashes. Fabric disabled for correct USD-backed rendering. |
 
 ---
 
-## 4. Phased Implementation Order
+## 5. Resulting File Structure (Current)
 
-### Phase 1 — Static scene (no randomization)
-1. Create `RoomSceneCfg` with all assets at their default positions
-2. Load the room environment USD as a static `AssetBaseCfg`
-3. Verify it renders correctly with `num_envs=1`
-4. Scale to `num_envs=4` and confirm auto-cloning
-
-### Phase 2 — Table group randomization
-1. Port `offset_from_pose` → `offset_from_pose_batched` (torch)
-2. Port `table_group_fits` → batched rejection sampling
-3. Write `randomize_table_group()` event term
-4. Verify desk + chair + robot move correctly on reset
-
-### Phase 3 — Wall prop randomization
-1. Port `is_free` → `is_free_batched`
-2. Port the slot-selection + tall-prop logic
-3. Write `randomize_wall_props()` event term
-4. Handle "unused props go underground" for variable counts
-
-### Phase 4 — Tabletop objects
-1. Port `random_desk_object_pose` → batched version
-2. Write `randomize_desk_objects()` event term
-3. Handle the "2 or 3 objects" variation (underground trick)
-
-### Phase 5 — Polish
-1. Add observation/action managers if this feeds into RL
-2. Add camera randomization (Tier 2 from your spec)
-3. Add lighting randomization
-
----
-
-## 5. Open Questions
-
-> [!IMPORTANT]
-> **Room shell loading:** Your current room (`/World/Environment`) contains walls, floor, ceiling, and the original authored props (which you then hide). In Isaac Lab, do you load this entire USD file as a single static `AssetBaseCfg` and hide the original props at the USD level before loading? Or do you strip the authored props from the template USD first and load a "clean shell"?
-
-> [!IMPORTANT]
-> **Kinematic vs. dynamic:** Most of your objects (wall cabinets, shelves, desk, chair) are furniture that doesn't move during simulation. Making them `kinematic_enabled=True` avoids physics simulation cost. Only the tabletop objects (coffee, lamp, box) and potentially the Ridgeback need to be dynamic. Is that correct?
-
-> [!IMPORTANT]
-> **USD file hosting:** Your current asset paths point to the Omniverse S3 CDN. Isaac Lab's `UsdFileCfg` supports the same URLs, but for training at scale you may want local copies. What's your asset distribution strategy?
-
-> [!IMPORTANT]
-> **Is this for RL training or data generation?** If it's purely for synthetic data generation (perception training from your spec), you might prefer Isaac Lab's `Replicator` integration over `ManagerBasedEnv`. If it's for RL policy training (pick-and-place), then `ManagerBasedEnv` is the right choice. Which pipeline is this feeding?
+```
+room_randomizer_lab/
+├── __init__.py               # Exports RoomEnvCfg, RoomSceneCfg
+├── constants.py              # OBB sizes, wall zones, orbit offsets, asset paths
+├── placement_utils.py        # SAT collision, quaternion math, build_root_state
+├── room_scene_cfg.py         # @configclass RoomSceneCfg — 14 asset fields (proxy cuboids)
+├── room_events.py            # 3-phase placement + visual prop sync
+├── room_env_cfg.py           # @configclass RoomEnvCfg — master config (CPU PhysX)
+├── run_randomizer.py         # Launcher script (AppLauncher + sim loop)
+├── test_placement.py         # Standalone matplotlib OBB test (no Isaac Sim)
+├── placement_test.png        # Output from test_placement.py
+├── execution_flow.md         # Step-by-step runtime trace
+├── implementation_plan.md    # OBB placement algorithm documentation
+├── project_architecture.md   # Architecture overview + RL roadmap
+└── transition_guide.md       # This file — migration reference
+```
