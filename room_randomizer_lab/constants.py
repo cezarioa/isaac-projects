@@ -150,14 +150,15 @@ WALL_PROP_META: Dict[str, WallPropMeta] = {
         "SM_MedicalCabinet_01a",
         bbox=BBox(half_w=0.55, half_d=0.35),
         tall=True,
-        wall_offset=0.20,
-        yaw_offset=0.0,
+        wall_offset=-0.50,
+        yaw_offset=math.pi,
         allowed_walls=("right",),
     ),
     "shelf_set": WallPropMeta(
         "SM_ShelfSet_01a",
         bbox=BBox(half_w=0.65, half_d=0.35),
         tall=True,
+        wall_offset=-1.70,
         yaw_offset=math.pi,
         allowed_walls=("right",),
     ),
@@ -187,6 +188,7 @@ WALL_PROP_META: Dict[str, WallPropMeta] = {
     "supply_cart_b": WallPropMeta(
         "SM_SupplyCart_03a",
         bbox=BBox(half_w=0.55, half_d=0.40),
+        yaw_offset=math.pi / 2,
     ),
 }
 
