@@ -22,6 +22,7 @@ ROOM_X_MAX = -2.5
 ROOM_Y_MIN = -11.25
 ROOM_Y_MAX = -5.0
 FLOOR_Z = 0.0
+ROBOT_Z = 0.0328
 
 # Wall surface positions (room-facing edge of each wall).
 BACK_WALL_LINE_Y = -10.95
@@ -261,6 +262,7 @@ ASSET_PATHS: Dict[str, str] = {
     "SM_Lamp02":             f"{_OFFICE}/SM_Lamp02.usd",
     "SM_BoxPortableC":       f"{_OFFICE}/SM_BoxPortableC.usd",
     "SM_CratePlastic_D_01":  f"{_WAREHOUSE}/SM_CratePlastic_D_01.usd",
+    "RidgebackUr":           "https://omniverse-content-production.s3-us-west-2.amazonaws.com/Assets/Isaac/5.1/Isaac/Robots/Clearpath/RidgebackUr/ridgeback_ur5.usd",
 }
 
 TEMPLATE_ROOM_USD = "/World/Environment"

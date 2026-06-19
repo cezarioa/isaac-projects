@@ -5,25 +5,94 @@
 
 from __future__ import annotations
 
-from isaaclab.assets import AssetBaseCfg, RigidObjectCfg
+from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
 from isaaclab.scene import InteractiveSceneCfg
 from isaaclab.sensors import CameraCfg
 from isaaclab.utils import configclass
 import isaaclab.sim as sim_utils
+from isaaclab.sim import schemas
+from isaaclab.sim.spawners.from_files import from_files as file_spawners
+from isaaclab.sim.utils import clone, get_current_stage
+from isaaclab.utils.assets import check_usd_path_with_timeout
+from pxr import PhysxSchema, Usd, UsdGeom, UsdPhysics
 
-from .constants import ASSET_PATHS, CHAIR_BBOX, DESK_BBOX, DESK_OBJECT_Z, FLOOR_Z, ROBOT_BBOX, TABLE_PROP_META, WALL_PROP_META
+from .constants import ASSET_PATHS, DESK_OBJECT_Z, FLOOR_Z, ROBOT_Z
 
 
 # ------------------------------------------------------------------
-# Helper to reduce boilerplate for kinematic wall-prop configs
+# Helpers for real USD rigid-object configs
 # ------------------------------------------------------------------
+
+def _ensure_mesh_colliders(root_prim: Usd.Prim) -> None:
+    """Use the visual meshes as real colliders when the asset has no authored colliders."""
+    has_collider = any(prim.HasAPI(UsdPhysics.CollisionAPI) for prim in Usd.PrimRange(root_prim))
+    if has_collider:
+        return
+
+    for prim in Usd.PrimRange(root_prim):
+        if prim.IsA(UsdGeom.Mesh):
+            UsdPhysics.CollisionAPI.Apply(prim)
+            PhysxSchema.PhysxCollisionAPI.Apply(prim)
+            UsdPhysics.MeshCollisionAPI.Apply(prim).CreateApproximationAttr().Set("none")
+
+
+def _ensure_root_rigid_body(prim_path: str, cfg: sim_utils.UsdFileCfg) -> None:
+    """Make the referenced USD a single Isaac Lab RigidObject rooted at prim_path."""
+    stage = get_current_stage()
+    root_prim = stage.GetPrimAtPath(prim_path)
+    if not root_prim.IsValid():
+        raise ValueError(f"Prim path '{prim_path}' is not valid.")
+
+    for prim in Usd.PrimRange(root_prim):
+        if prim == root_prim:
+            continue
+        if prim.HasAPI(UsdPhysics.RigidBodyAPI):
+            prim.RemoveAPI(UsdPhysics.RigidBodyAPI)
+        if prim.HasAPI(PhysxSchema.PhysxRigidBodyAPI):
+            prim.RemoveAPI(PhysxSchema.PhysxRigidBodyAPI)
+
+    schemas.define_rigid_body_properties(prim_path, cfg.rigid_props, stage=stage)
+    _ensure_mesh_colliders(root_prim)
+
+    if cfg.collision_props is not None:
+        schemas.modify_collision_properties(prim_path, cfg.collision_props, stage=stage)
+    if cfg.mass_props is not None:
+        schemas.define_mass_properties(prim_path, cfg.mass_props, stage=stage)
+
+
+@clone
+def _spawn_real_rigid_usd(
+    prim_path: str,
+    cfg: sim_utils.UsdFileCfg,
+    translation: tuple[float, float, float] | None = None,
+    orientation: tuple[float, float, float, float] | None = None,
+    **kwargs,
+) -> Usd.Prim:
+    """Spawn a detailed USD asset and author a single root rigid body for Isaac Lab."""
+    if cfg.rigid_props is None:
+        raise ValueError("_spawn_real_rigid_usd requires cfg.rigid_props.")
+
+    if not check_usd_path_with_timeout(cfg.usd_path):
+        raise FileNotFoundError(f"USD file not found at path: '{cfg.usd_path}'.")
+
+    spawn_cfg = cfg.copy()
+    spawn_cfg.rigid_props = None
+    spawn_cfg.collision_props = None
+    spawn_cfg.mass_props = None
+
+    prim = file_spawners._spawn_from_usd_file(prim_path, cfg.usd_path, spawn_cfg, translation, orientation)
+    _ensure_root_rigid_body(prim_path, cfg)
+    return prim
+
 
 def _kinematic_usd_cfg(usd_path: str) -> sim_utils.UsdFileCfg:
     """UsdFileCfg with kinematic rigid-body properties (won't fall)."""
     return sim_utils.UsdFileCfg(
+        func=_spawn_real_rigid_usd,
         usd_path=usd_path,
         rigid_props=sim_utils.RigidBodyPropertiesCfg(
             rigid_body_enabled=True,
+            kinematic_enabled=True,
             disable_gravity=True,
             linear_damping=10.0,
             angular_damping=10.0,
@@ -35,43 +104,14 @@ def _kinematic_usd_cfg(usd_path: str) -> sim_utils.UsdFileCfg:
 def _dynamic_usd_cfg(usd_path: str, mass: float = 0.05) -> sim_utils.UsdFileCfg:
     """UsdFileCfg with dynamic rigid-body properties (affected by physics)."""
     return sim_utils.UsdFileCfg(
+        func=_spawn_real_rigid_usd,
         usd_path=usd_path,
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(rigid_body_enabled=True),
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            rigid_body_enabled=True,
+            kinematic_enabled=False,
+        ),
         mass_props=sim_utils.MassPropertiesCfg(mass=mass),
         collision_props=sim_utils.CollisionPropertiesCfg(),
-    )
-
-
-def _proxy_box_cfg(half_w: float, half_d: float, height: float = 0.08) -> sim_utils.CuboidCfg:
-    """Invisible GPU-safe kinematic proxy used by Isaac Lab tensor views."""
-    return sim_utils.CuboidCfg(
-        size=(2.0 * half_w, 2.0 * half_d, height),
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(
-            rigid_body_enabled=True,
-            disable_gravity=True,
-            linear_damping=10.0,
-            angular_damping=10.0,
-        ),
-        collision_props=sim_utils.CollisionPropertiesCfg(),
-        visible=False,
-    )
-
-
-def _desk_object_cfg(
-    half_w: float, half_d: float, height: float = 0.06,
-    color: tuple = (0.8, 0.2, 0.2),
-) -> sim_utils.CuboidCfg:
-    """Small visible proxy cuboid for tabletop objects."""
-    return sim_utils.CuboidCfg(
-        size=(2.0 * half_w, 2.0 * half_d, height),
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(
-            rigid_body_enabled=True,
-            disable_gravity=True,
-            linear_damping=10.0,
-            angular_damping=10.0,
-        ),
-        collision_props=sim_utils.CollisionPropertiesCfg(),
-        visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=color),
     )
 
 
@@ -124,20 +164,17 @@ class RoomSceneCfg(InteractiveSceneCfg):
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -9.15, FLOOR_Z)),
     )
 
-    ridgeback = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/RidgebackProxy",
-        spawn=sim_utils.CuboidCfg(
-            size=(2.0 * ROBOT_BBOX.half_w, 2.0 * ROBOT_BBOX.half_d, 0.35),
-            rigid_props=sim_utils.RigidBodyPropertiesCfg(
-                rigid_body_enabled=True,
-                disable_gravity=True,
-                linear_damping=10.0,
-                angular_damping=10.0,
+    ridgeback = ArticulationCfg(
+        prim_path="{ENV_REGEX_NS}/Ridgeback",
+        spawn=sim_utils.UsdFileCfg(
+            usd_path=ASSET_PATHS["RidgebackUr"],
+            articulation_props=sim_utils.ArticulationRootPropertiesCfg(
+                articulation_enabled=True,
+                enabled_self_collisions=False,
             ),
-            collision_props=sim_utils.CollisionPropertiesCfg(),
-            visual_material=sim_utils.PreviewSurfaceCfg(diffuse_color=(0.1, 0.18, 0.28)),
         ),
-        init_state=RigidObjectCfg.InitialStateCfg(pos=(-6.1, -5.95, 0.18)),
+        init_state=ArticulationCfg.InitialStateCfg(pos=(-6.1, -5.95, ROBOT_Z)),
+        actuators={},
     )
 
     # --- wall props (kinematic) ---------------------------------------
@@ -190,7 +227,7 @@ class RoomSceneCfg(InteractiveSceneCfg):
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-2.89, -6.35, FLOOR_Z)),
     )
 
-    # --- tabletop objects (visible proxies on desk surface) ------------
+    # --- tabletop objects (real USD props on desk surface) --------------
 
     coffee_cup = RigidObjectCfg(
         prim_path="{ENV_REGEX_NS}/CoffeeCup",

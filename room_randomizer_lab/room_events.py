@@ -27,6 +27,7 @@ from .constants import (
     OBB_PLACEMENT_MARGIN,
     ROBOT_BBOX,
     ROBOT_ORBIT_OFFSET,
+    ROBOT_Z,
     TABLE_FALLBACK_X,
     TABLE_FALLBACK_Y,
     TABLE_GROUP_MAX_TRIES,
@@ -471,7 +472,7 @@ def _place_table_group(
 
     robot_pos = offset_from_yaw_batched(
         desk_positions, desk_yaws,
-        ROBOT_ORBIT_OFFSET[0], ROBOT_ORBIT_OFFSET[1], 0.175,
+        ROBOT_ORBIT_OFFSET[0], ROBOT_ORBIT_OFFSET[1], ROBOT_Z,
     )
     robot_yaw = desk_yaws - math.pi / 2
 
