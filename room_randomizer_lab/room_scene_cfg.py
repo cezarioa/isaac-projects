@@ -11,7 +11,7 @@ from isaaclab.sensors import CameraCfg
 from isaaclab.utils import configclass
 import isaaclab.sim as sim_utils
 
-from .constants import CHAIR_BBOX, DESK_BBOX, DESK_OBJECT_Z, FLOOR_Z, ROBOT_BBOX, TABLE_PROP_META, WALL_PROP_META
+from .constants import ASSET_PATHS, CHAIR_BBOX, DESK_BBOX, DESK_OBJECT_Z, FLOOR_Z, ROBOT_BBOX, TABLE_PROP_META, WALL_PROP_META
 
 
 # ------------------------------------------------------------------
@@ -22,7 +22,12 @@ def _kinematic_usd_cfg(usd_path: str) -> sim_utils.UsdFileCfg:
     """UsdFileCfg with kinematic rigid-body properties (won't fall)."""
     return sim_utils.UsdFileCfg(
         usd_path=usd_path,
-        rigid_props=sim_utils.RigidBodyPropertiesCfg(kinematic_enabled=True),
+        rigid_props=sim_utils.RigidBodyPropertiesCfg(
+            rigid_body_enabled=True,
+            disable_gravity=True,
+            linear_damping=10.0,
+            angular_damping=10.0,
+        ),
         collision_props=sim_utils.CollisionPropertiesCfg(),
     )
 
@@ -108,14 +113,14 @@ class RoomSceneCfg(InteractiveSceneCfg):
     # --- table group (kinematic) --------------------------------------
 
     desk = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/desk_proxy",
-        spawn=_proxy_box_cfg(DESK_BBOX.half_w, DESK_BBOX.half_d),
+        prim_path="{ENV_REGEX_NS}/Desk",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_Desk_04a"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -7.5, FLOOR_Z)),
     )
 
     chair = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/chair_proxy",
-        spawn=_proxy_box_cfg(CHAIR_BBOX.half_w, CHAIR_BBOX.half_d),
+        prim_path="{ENV_REGEX_NS}/Chair",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_Chair_04a"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -9.15, FLOOR_Z)),
     )
 
@@ -138,85 +143,70 @@ class RoomSceneCfg(InteractiveSceneCfg):
     # --- wall props (kinematic) ---------------------------------------
 
     medical_cabinet = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/medical_cabinet_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["medical_cabinet"].bbox.half_w, WALL_PROP_META["medical_cabinet"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/MedicalCabinet",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_MedicalCabinet_01a"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-3.0, -10.0, FLOOR_Z)),
     )
 
     shelf_set = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/shelf_set_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["shelf_set"].bbox.half_w, WALL_PROP_META["shelf_set"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/ShelfSet",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_ShelfSet_01a"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-4.32, -10.76, FLOOR_Z)),
     )
 
     supply_cabinet = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/supply_cabinet_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["supply_cabinet"].bbox.half_w, WALL_PROP_META["supply_cabinet"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/SupplyCabinet",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_SupplyCabinet_01c"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-5.78, -10.91, FLOOR_Z)),
     )
 
     supply_cart_a = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/supply_cart_a_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["supply_cart_a"].bbox.half_w, WALL_PROP_META["supply_cart_a"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/SupplyCartA",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_SupplyCart_02a"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-6.50, -10.95, FLOOR_Z)),
     )
 
     supply_cart_b = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/supply_cart_b_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["supply_cart_b"].bbox.half_w, WALL_PROP_META["supply_cart_b"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/SupplyCartB",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_SupplyCart_03a"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.20, -11.0, FLOOR_Z)),
     )
 
     trash_can = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/trash_can_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["trash_can"].bbox.half_w, WALL_PROP_META["trash_can"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/TrashCan",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_TrashCan"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-8.10, -10.91, FLOOR_Z)),
     )
 
     plant_a = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/plant_a_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["plant_a"].bbox.half_w, WALL_PROP_META["plant_a"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/PlantA",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_Plant01"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-2.80, -5.50, FLOOR_Z)),
     )
 
     plant_b = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/plant_b_proxy",
-        spawn=_proxy_box_cfg(WALL_PROP_META["plant_b"].bbox.half_w, WALL_PROP_META["plant_b"].bbox.half_d),
+        prim_path="{ENV_REGEX_NS}/PlantB",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_Plant02"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-2.89, -6.35, FLOOR_Z)),
     )
 
     # --- tabletop objects (visible proxies on desk surface) ------------
 
     coffee_cup = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/coffee_cup_proxy",
-        spawn=_desk_object_cfg(
-            TABLE_PROP_META["coffee_cup"].bbox.half_w,
-            TABLE_PROP_META["coffee_cup"].bbox.half_d,
-            height=0.10,
-            color=(0.55, 0.27, 0.07),  # brown
-        ),
+        prim_path="{ENV_REGEX_NS}/CoffeeCup",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_CoffeeToGo"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.0, -7.5, DESK_OBJECT_Z)),
     )
 
     desk_lamp = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/desk_lamp_proxy",
-        spawn=_desk_object_cfg(
-            TABLE_PROP_META["desk_lamp"].bbox.half_w,
-            TABLE_PROP_META["desk_lamp"].bbox.half_d,
-            height=0.25,
-            color=(0.85, 0.75, 0.20),  # gold
-        ),
+        prim_path="{ENV_REGEX_NS}/DeskLamp",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_Lamp02"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-7.2, -7.3, DESK_OBJECT_Z)),
     )
 
     box_portable = RigidObjectCfg(
-        prim_path="{ENV_REGEX_NS}/box_portable_proxy",
-        spawn=_desk_object_cfg(
-            TABLE_PROP_META["box_portable"].bbox.half_w,
-            TABLE_PROP_META["box_portable"].bbox.half_d,
-            height=0.08,
-            color=(0.30, 0.50, 0.70),  # steel blue
-        ),
+        prim_path="{ENV_REGEX_NS}/BoxPortable",
+        spawn=_kinematic_usd_cfg(ASSET_PATHS["SM_BoxPortableC"]),
         init_state=RigidObjectCfg.InitialStateCfg(pos=(-6.8, -7.7, DESK_OBJECT_Z)),
     )
 
@@ -235,7 +225,7 @@ class RoomSceneCfg(InteractiveSceneCfg):
             clipping_range=(0.1, 1.0e5),
         ),
         offset=CameraCfg.OffsetCfg(
-            pos=(-7.1, -8.6, 14.8),
+            pos=(-5.5, -9.1, 16.8),
             rot=(0.7071068, 0.0, 0.7071068, 0.0),  # look down
             convention="world",
         ),

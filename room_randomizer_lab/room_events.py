@@ -52,50 +52,41 @@ from .placement_utils import (
 )
 
 
-_VISUAL_PROP_REL_PATHS = {
-    "desk": "RoomShell/Environment/props/room_props/SM_Desk_04a",
-    "chair": "RoomShell/Environment/props/room_props/SM_Chair_04a",
-    "medical_cabinet": "RoomShell/Environment/props/wall_props/SM_MedicalCabinet_01a",
-    "shelf_set": "RoomShell/Environment/props/wall_props/SM_ShelfSet_01a",
-    "supply_cabinet": "RoomShell/Environment/props/wall_props/SM_SupplyCabinet_01c",
-    "supply_cart_a": "RoomShell/Environment/props/wall_props/SM_SupplyCart_02a",
-    "supply_cart_b": "RoomShell/Environment/props/wall_props/SM_SupplyCart_03a",
-    "trash_can": "RoomShell/Environment/props/wall_props/SM_TrashCan",
-    "plant_a": "RoomShell/Environment/props/wall_props/SM_Plant01",
-    "plant_b": "RoomShell/Environment/props/wall_props/SM_Plant02",
-}
+_DUPLICATE_VISUAL_PROPS_TO_HIDE = [
+    "RoomShell/Environment/props/room_props/SM_Desk_04a",
+    "RoomShell/Environment/props/room_props/SM_Chair_04a",
+    "RoomShell/Environment/props/wall_props/SM_MedicalCabinet_01a",
+    "RoomShell/Environment/props/wall_props/SM_ShelfSet_01a",
+    "RoomShell/Environment/props/wall_props/SM_SupplyCabinet_01c",
+    "RoomShell/Environment/props/wall_props/SM_SupplyCart_02a",
+    "RoomShell/Environment/props/wall_props/SM_SupplyCart_03a",
+    "RoomShell/Environment/props/wall_props/SM_TrashCan",
+    "RoomShell/Environment/props/wall_props/SM_Plant01",
+    "RoomShell/Environment/props/wall_props/SM_Plant02",
+]
 
 
-def _set_visual_prop_pose(env_id: int, name: str, pos_xyz: torch.Tensor, yaw_rad: torch.Tensor) -> None:
-    """Move the visual prop inside RoomShell to match its physics proxy."""
-    rel_path = _VISUAL_PROP_REL_PATHS.get(name)
-    if rel_path is None:
+_visual_props_hidden = False
+
+def _hide_duplicate_visual_props(env_ids: torch.Tensor) -> None:
+    """Hides the original duplicate meshes inside RoomShell."""
+    global _visual_props_hidden
+    if _visual_props_hidden:
         return
-
-    prim_path = f"/World/envs/env_{env_id}/{rel_path}"
-    prim = omni.usd.get_context().get_stage().GetPrimAtPath(prim_path)
-    if not prim or not prim.IsValid():
-        print(f"[VISUAL_SYNC_WARNING] missing visual prim: {prim_path}", flush=True)
-        return
-
-    def _vec3_for_attr(attr, x: float, y: float, z: float):
-        type_name = str(attr.GetTypeName())
-        if type_name == "float3":
-            return Gf.Vec3f(x, y, z)
-        return Gf.Vec3d(x, y, z)
-
-    translate_attr = prim.GetAttribute("xformOp:translate")
-    if translate_attr:
-        translate_attr.Set(_vec3_for_attr(translate_attr, float(pos_xyz[0]), float(pos_xyz[1]), float(pos_xyz[2])))
-
-    rotate_attr = prim.GetAttribute("xformOp:rotateZYX")
-    if rotate_attr:
-        rotate_attr.Set(_vec3_for_attr(rotate_attr, 0.0, 0.0, math.degrees(float(yaw_rad))))
-
-
-def _sync_visual_props(env: ManagerBasedEnv, env_ids: torch.Tensor, name: str, positions: torch.Tensor, yaws: torch.Tensor) -> None:
+    
+    stage = omni.usd.get_context().get_stage()
     for env_idx in range(len(env_ids)):
-        _set_visual_prop_pose(_env_id_int(env_ids, env_idx), name, positions[env_idx], yaws[env_idx])
+        env_id = _env_id_int(env_ids, env_idx)
+        for rel_path in _DUPLICATE_VISUAL_PROPS_TO_HIDE:
+            prim_path = f"/World/envs/env_{env_id}/{rel_path}"
+            prim = stage.GetPrimAtPath(prim_path)
+            if prim and prim.IsValid():
+                from pxr import UsdGeom
+                imageable = UsdGeom.Imageable(prim)
+                if imageable:
+                    imageable.MakeInvisible()
+    
+    _visual_props_hidden = True
 
 
 # ======================================================================
@@ -115,6 +106,9 @@ def randomize_room_layout(
     """
     M = len(env_ids)
     device = env.device
+
+    # Hide original static meshes embedded in RoomShell to avoid duplicates
+    _hide_duplicate_visual_props(env_ids)
 
     # Per-environment list of placed OBBs.
     all_placed: List[List[OBB]] = [[] for _ in range(M)]
@@ -353,7 +347,6 @@ def _place_wall_props(
             asset.data.default_root_state,
         )
         asset.write_root_state_to_sim(root_state, env_ids=env_ids)
-        _sync_visual_props(env, env_ids, name, pos_local, yaw_rad)
 
     for env_idx in range(M):
         env_id = _env_id_int(env_ids, env_idx)
@@ -496,12 +489,10 @@ def _place_table_group(
     desk_asset = env.scene["desk"]
     desk_state = build_root_state(desk_positions, desk_yaws, env_origins, env_ids, desk_asset.data.default_root_state)
     desk_asset.write_root_state_to_sim(desk_state, env_ids=env_ids)
-    _sync_visual_props(env, env_ids, "desk", desk_positions, desk_yaws)
 
     chair_asset = env.scene["chair"]
     chair_state = build_root_state(chair_pos, chair_yaw, env_origins, env_ids, chair_asset.data.default_root_state)
     chair_asset.write_root_state_to_sim(chair_state, env_ids=env_ids)
-    _sync_visual_props(env, env_ids, "chair", chair_pos, chair_yaw)
 
     try:
         robot_asset = env.scene["ridgeback"]

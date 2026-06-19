@@ -253,6 +253,8 @@ ASSET_PATHS: Dict[str, str] = {
     "SM_TrashCan":           f"{_HOSPITAL}/SM_TrashCan.usd",
     "SM_SupplyCart_02a":     f"{_HOSPITAL}/SM_SupplyCart_02a.usd",
     "SM_SupplyCart_03a":     f"{_HOSPITAL}/SM_SupplyCart_03a.usd",
+    "SM_Desk_04a":           f"{_HOSPITAL}/SM_Desk_04a.usd",
+    "SM_Chair_04a":          f"{_HOSPITAL}/SM_Chair_04a.usd",
     "SM_Plant01":            f"{_OFFICE}/SM_Plant01.usd",
     "SM_Plant02":            f"{_OFFICE}/SM_Plant02.usd",
     "SM_CoffeeToGo":         f"{_OFFICE}/SM_CoffeeToGo.usd",

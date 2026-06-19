@@ -73,11 +73,10 @@ class RoomEnvCfg(ManagerBasedEnvCfg):
         """Simulation defaults."""
         self.decimation = 2
         self.sim.dt = 1.0 / 120.0
-        # PhysX GPU tensors currently crash on this scene/driver stack even
-        # after removing imported USD rigid bodies. Run physics on CPU and
-        # disable Fabric so transforms remain USD-backed and render correctly.
-        self.sim.device = "cpu"
-        self.sim.use_fabric = False
+        # PhysX GPU tensors are enabled since we are using clean USD assets from CDN
+        # instead of the duplicated ones with embedded collision schemas.
+        self.sim.device = "cuda:0"
+        self.sim.use_fabric = True
 
         # Viewer defaults for debugging.
         self.viewer.eye = (2.0, 2.0, 2.0)
