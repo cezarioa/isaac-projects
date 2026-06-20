@@ -10,8 +10,15 @@ This script:
 4. Saves the modified USD
 """
 import shutil
+
 from pxr import Usd, UsdPhysics
-USD_PATH = "/home/cezar/isaac-sim/isaac-projects/new_base_room.usda"
+
+try:
+    from .paths import ROOM_SHELL_USD
+except ImportError:
+    from paths import ROOM_SHELL_USD
+
+USD_PATH = str(ROOM_SHELL_USD)
 BACKUP_PATH = USD_PATH + ".bak"
 # Prims under this path are static geometry ? strip RigidBodyAPI
 STATIC_ROOT = "/World/Environment/room_static"

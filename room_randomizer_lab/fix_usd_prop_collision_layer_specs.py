@@ -9,7 +9,12 @@ collision schemas from their payload children in the root USDA layer.
 
 from pxr import Sdf
 
-USD_PATH = "/home/cezar/isaac-sim/isaac-projects/new_base_room.usda"
+try:
+    from .paths import ROOM_SHELL_USD
+except ImportError:
+    from paths import ROOM_SHELL_USD
+
+USD_PATH = str(ROOM_SHELL_USD)
 PROPS_ROOT = "/World/Environment/props"
 
 EXPECTED_RIGID_ROOTS = [

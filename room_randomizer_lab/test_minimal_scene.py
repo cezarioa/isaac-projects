@@ -2,9 +2,14 @@
 import argparse
 import sys
 from pathlib import Path
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
+
+PACKAGE_ROOT = Path(__file__).resolve().parent
+PROJECT_ROOT = PACKAGE_ROOT.parent
 if str(PROJECT_ROOT) not in sys.path:
     sys.path.insert(0, str(PROJECT_ROOT))
+
+from room_randomizer_lab.paths import ROOM_SHELL_USD
+
 from isaaclab.app import AppLauncher
 parser = argparse.ArgumentParser(description="Minimal room shell test.")
 parser.add_argument("--num_envs", type=int, default=1)
@@ -37,7 +42,7 @@ class MinimalSceneCfg(InteractiveSceneCfg):
     room_shell = AssetBaseCfg(
         prim_path="{ENV_REGEX_NS}/RoomShell",
         spawn=sim_utils.UsdFileCfg(
-            usd_path="/home/cezar/isaac-sim/isaac-projects/new_base_room.usda",
+            usd_path=str(ROOM_SHELL_USD),
         ),
     )
 @configclass

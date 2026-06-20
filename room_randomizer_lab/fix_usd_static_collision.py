@@ -6,7 +6,12 @@ collision, and room placement uses OBB checks rather than wall physics contacts.
 
 from pxr import Sdf, Usd
 
-USD_PATH = "/home/cezar/isaac-sim/isaac-projects/new_base_room.usda"
+try:
+    from .paths import ROOM_SHELL_USD
+except ImportError:
+    from paths import ROOM_SHELL_USD
+
+USD_PATH = str(ROOM_SHELL_USD)
 STATIC_ROOT = "/World/Environment/room_static"
 COLLISION_SCHEMAS = {
     "PhysicsCollisionAPI",

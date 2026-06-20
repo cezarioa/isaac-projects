@@ -1,6 +1,12 @@
 """Dump the prim hierarchy of new_base_room.usda and check for RigidBodyAPI."""
 from pxr import Usd, UsdPhysics
-USD_PATH = "/home/cezar/isaac-sim/isaac-projects/new_base_room.usda"
+
+try:
+    from .paths import ROOM_SHELL_USD
+except ImportError:
+    from paths import ROOM_SHELL_USD
+
+USD_PATH = str(ROOM_SHELL_USD)
 EXPECTED_PRIMS = [
     "Environment/props/room_props/SM_Desk_04a",
     "Environment/props/room_props/SM_Chair_04a",

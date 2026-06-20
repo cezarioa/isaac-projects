@@ -17,6 +17,7 @@ from isaaclab.utils.assets import check_usd_path_with_timeout
 from pxr import PhysxSchema, Usd, UsdGeom, UsdPhysics
 
 from .constants import ASSET_PATHS, DESK_OBJECT_Z, FLOOR_Z, ROBOT_Z
+from .paths import ROOM_SHELL_USD
 
 
 # ------------------------------------------------------------------
@@ -146,7 +147,7 @@ class RoomSceneCfg(InteractiveSceneCfg):
     room_shell = AssetBaseCfg(
         prim_path="{ENV_REGEX_NS}/RoomShell",
         spawn=sim_utils.UsdFileCfg(
-            usd_path="/home/cezar/isaac-sim/isaac-projects/new_base_room.usda",
+            usd_path=str(ROOM_SHELL_USD),
         ),
     )
 
@@ -267,4 +268,3 @@ class RoomSceneCfg(InteractiveSceneCfg):
             convention="world",
         ),
     )
-
