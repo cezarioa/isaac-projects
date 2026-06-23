@@ -76,7 +76,7 @@ WALL_ZONES: List[WallZone] = [
     WallZone(
         wall="right",
         sample_min=-10.0,
-        sample_max=-5.5,
+        sample_max=-7.0,
         fixed_coord=-3.0,    # prop center X (slightly off the right wall surface)
         base_yaw=math.pi / 2,  # face into room (-X direction)
     ),
@@ -112,7 +112,7 @@ DESK_OBJECT_MARGIN = 0.03   # margin between tabletop OBBs
 # Orbital offsets (local-frame displacement from desk center)
 # ============================================================
 
-CHAIR_ORBIT_OFFSET = (0.0, -1.65)   # (local_x, local_y)
+CHAIR_ORBIT_OFFSET = (0.0, -1.00)   # (local_x, local_y)
 ROBOT_ORBIT_OFFSET = (-1.95, 1.10)
 
 # ============================================================
@@ -150,7 +150,7 @@ WALL_PROP_META: Dict[str, WallPropMeta] = {
         "SM_MedicalCabinet_01a",
         bbox=BBox(half_w=0.436, half_d=0.328),
         tall=True,
-        wall_offset=-0.172,
+        wall_offset=0.25,
         yaw_offset=math.pi,
         allowed_walls=("right",),
     ),
@@ -176,11 +176,11 @@ WALL_PROP_META: Dict[str, WallPropMeta] = {
     ),
     "plant_a": WallPropMeta(
         "SM_Plant01",
-        bbox=BBox(half_w=0.652, half_d=0.771),
+        bbox=BBox(half_w=0.352, half_d=0.404),
     ),
     "plant_b": WallPropMeta(
         "SM_Plant02",
-        bbox=BBox(half_w=0.469, half_d=0.504),
+        bbox=BBox(half_w=0.252, half_d=0.3),
     ),
     "supply_cart_a": WallPropMeta(
         "SM_SupplyCart_02a",
