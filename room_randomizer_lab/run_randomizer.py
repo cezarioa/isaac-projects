@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 # run_randomizer.py
 # Example script to launch the Isaac Lab simulation, instantiate the 
 # room environment, and step through episodes to see the randomization.
